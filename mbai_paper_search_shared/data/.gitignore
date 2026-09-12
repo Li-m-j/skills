@@ -1,0 +1,18 @@
+# 忽略个人 key 与本地缓存
+api_keys.local.json
+api_keys.json
+api_logs.json
+data/cache/
+data/tmp/
+
+# ── 个人数据 / 本地状态（打包与提交都必须忽略）──
+seen_papers.json
+user_prefs.json
+api_logs.json
+api_keys.local.json
+*.local.json
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/

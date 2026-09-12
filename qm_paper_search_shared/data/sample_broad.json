@@ -1,0 +1,68 @@
+{
+  "meta": {
+    "count": 3,
+    "db_response_time_ms": 100
+  },
+  "results": [
+    {
+      "title": "RetroBioCat Database: Biocatalysis Meta-Analysis",
+      "doi": "https://doi.org/10.1021/acscatal.3c01418",
+      "publication_year": 2023,
+      "primary_location": {
+        "source": {
+          "display_name": "ACS Catalysis",
+          "issn_l": "2155-5435"
+        }
+      },
+      "abstract_inverted_index": {
+        "Despite": [0],
+        "the": [1],
+        "increasing": [2],
+        "use": [3],
+        "of": [4],
+        "biocatalysis": [5],
+        "for": [6],
+        "organic": [7],
+        "synthesis": [8],
+        "RetroBioCat": [9],
+        "Database": [10]
+      },
+      "cited_by_count": 33
+    },
+    {
+      "title": "Plastic Recycling Systematic Review",
+      "doi": "https://doi.org/10.1177/0734242x241310658",
+      "publication_year": 2025,
+      "primary_location": {
+        "source": {
+          "display_name": "Waste Management & Research",
+          "issn_l": "0734-242X"
+        }
+      },
+      "abstract_inverted_index": {
+        "plastic": [0],
+        "recycling": [1],
+        "technologies": [2]
+      },
+      "cited_by_count": 68
+    },
+    {
+      "title": "Iron Oxide Nanoparticles Review",
+      "doi": "https://doi.org/10.1186/s11671-023-03898-2",
+      "publication_year": 2023,
+      "primary_location": {
+        "source": {
+          "display_name": "Discover Nano",
+          "issn_l": "2731-9229"
+        }
+      },
+      "abstract_inverted_index": {
+        "Iron": [0],
+        "oxide": [1],
+        "nanoparticles": [2],
+        "applications": [3]
+      },
+      "cited_by_count": 67
+    }
+  ]
+}

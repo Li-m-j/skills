@@ -1,0 +1,33 @@
+{
+  "version": "0.2.3",
+  "description": "API key 模板文件（团队共享 + 个人本地覆盖）。不要直接编辑此文件填入真实 key。",
+  "setup_instructions": [
+    "1. 复制本文件为 api_keys.local.json（个人本地，不提交到 git）",
+    "2. 在 api_keys.local.json 中填入你的真实 API key",
+    "3. 或使用 Set-ApiKey.ps1 脚本自动管理 key",
+    "4. 或设置环境变量 OPENALEX_API_KEY / SEMANTIC_SCHOLAR_API_KEY",
+    "5. skill 读取顺序：api_keys.local.json > 环境变量 > 本模板（占位符，不可用）"
+  ],
+  "providers": {
+    "openalex": {
+      "key": "YOUR_OPENALEX_KEY_HERE",
+      "added_at": "placeholder",
+      "note": "OpenAlex polite pool 标识。免费申请：https://openalex.org/users/sign_up",
+      "env_var": "OPENALEX_API_KEY",
+      "rate_limit": "50 req/s with key, 5 req/s without"
+    },
+    "semantic_scholar": {
+      "key": "YOUR_SEMANTIC_SCHOLAR_KEY_HERE",
+      "added_at": "placeholder",
+      "note": "Semantic Scholar API key。免费申请：https://www.semanticscholar.org/product/api",
+      "env_var": "SEMANTIC_SCHOLAR_API_KEY",
+      "rate_limit": "100 req/min with key, shared IP without"
+    }
+  },
+  "compliance_notes": [
+    "OpenAlex 数据 CC0（公有领域），合理使用即可",
+    "Semantic Scholar API 仅限非商业用途，遵守其 Terms of Service",
+    "key 仅供个人使用，不分享",
+    "key 失效时（401/403）使用 Set-ApiKey.ps1 更新"
+  ]
+}

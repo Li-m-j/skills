@@ -1,0 +1,347 @@
+{
+  "version": "2025-initial",
+  "updated_at": "2025-12-31",
+  "source": "中科院《期刊分区表》与《国际期刊预警名单》",
+  "note": "v0.1 内置精简版，仅包含顶刊白名单与常见预警期刊。完整数据待年度更新时填充。",
+  "journals": {
+    "Journal of the American Chemical Society": {
+      "issn": "0002-7863",
+      "abbr": "JACS",
+      "zone": "1",
+      "category": "化学",
+      "top": true,
+      "warning": false,
+      "if_2024": 14.4
+    },
+    "Angewandte Chemie International Edition": {
+      "issn": "1433-7851",
+      "abbr": "Angew. Chem. Int. Ed.",
+      "zone": "1",
+      "category": "化学",
+      "top": true,
+      "warning": false,
+      "if_2024": 16.1
+    },
+    "Chem": {
+      "issn": "2451-9294",
+      "abbr": "Chem",
+      "zone": "1",
+      "category": "化学",
+      "top": true,
+      "warning": false,
+      "if_2024": 19.1
+    },
+    "Chemical Reviews": {
+      "issn": "0009-2665",
+      "abbr": "Chem. Rev.",
+      "zone": "1",
+      "category": "化学",
+      "top": true,
+      "warning": false,
+      "if_2024": 51.4
+    },
+    "Accounts of Chemical Research": {
+      "issn": "0001-4842",
+      "abbr": "Acc. Chem. Res.",
+      "zone": "1",
+      "category": "化学",
+      "top": true,
+      "warning": false,
+      "if_2024": 16.4
+    },
+    "Nature Chemistry": {
+      "issn": "1755-4330",
+      "abbr": "Nature Chem.",
+      "zone": "1",
+      "category": "化学",
+      "top": true,
+      "warning": false,
+      "if_2024": 24.9
+    },
+    "Nature Catalysis": {
+      "issn": "2520-1158",
+      "abbr": "Nature Catal.",
+      "zone": "1",
+      "category": "化学",
+      "top": true,
+      "warning": false,
+      "if_2024": 20.8
+    },
+    "Nature Synthesis": {
+      "issn": "2731-0582",
+      "abbr": "Nature Synth.",
+      "zone": "1",
+      "category": "化学",
+      "top": true,
+      "warning": false,
+      "if_2024": 17.5
+    },
+    "Nature Reviews Chemistry": {
+      "issn": "2397-3358",
+      "abbr": "Nature Rev. Chem.",
+      "zone": "1",
+      "category": "化学",
+      "top": true,
+      "warning": false,
+      "if_2024": 38.1
+    },
+    "Chemical Society Reviews": {
+      "issn": "0306-0012",
+      "abbr": "Chem. Soc. Rev.",
+      "zone": "1",
+      "category": "化学",
+      "top": true,
+      "warning": false,
+      "if_2024": 40.4
+    },
+    "Coordination Chemistry Reviews": {
+      "issn": "0010-8545",
+      "abbr": "Coord. Chem. Rev.",
+      "zone": "1",
+      "category": "化学",
+      "top": true,
+      "warning": false,
+      "if_2024": 20.6
+    },
+    "ACS Catalysis": {
+      "issn": "2155-5435",
+      "abbr": "ACS Catal.",
+      "zone": "1",
+      "category": "化学",
+      "top": true,
+      "warning": false,
+      "if_2024": 11.3
+    },
+    "Advanced Materials": {
+      "issn": "0935-9648",
+      "abbr": "Adv. Mater.",
+      "zone": "1",
+      "category": "材料科学",
+      "top": true,
+      "warning": false,
+      "if_2024": 27.4
+    },
+    "Advanced Functional Materials": {
+      "issn": "1616-301X",
+      "abbr": "Adv. Funct. Mater.",
+      "zone": "1",
+      "category": "材料科学",
+      "top": true,
+      "warning": false,
+      "if_2024": 18.5
+    },
+    "Advanced Energy Materials": {
+      "issn": "1614-6832",
+      "abbr": "Adv. Energy Mater.",
+      "zone": "1",
+      "category": "材料科学",
+      "top": true,
+      "warning": false,
+      "if_2024": 24.4
+    },
+    "Advanced Science": {
+      "issn": "2198-3844",
+      "abbr": "Adv. Sci.",
+      "zone": "1",
+      "category": "材料科学",
+      "top": true,
+      "warning": false,
+      "if_2024": 14.3
+    },
+    "Energy & Environmental Science": {
+      "issn": "1754-5692",
+      "abbr": "Energy Environ. Sci.",
+      "zone": "1",
+      "category": "化学",
+      "top": true,
+      "warning": false,
+      "if_2024": 32.4
+    },
+    "Environmental Science & Technology": {
+      "issn": "0013-936X",
+      "abbr": "Environ. Sci. Technol.",
+      "zone": "1",
+      "category": "环境科学",
+      "top": true,
+      "warning": false,
+      "if_2024": 10.8
+    },
+    "Water Research": {
+      "issn": "0043-1354",
+      "abbr": "Water Res.",
+      "zone": "1",
+      "category": "环境科学",
+      "top": true,
+      "warning": false,
+      "if_2024": 11.2
+    },
+    "Inorganic Chemistry": {
+      "issn": "0020-1669",
+      "abbr": "Inorg. Chem.",
+      "zone": "1",
+      "category": "化学",
+      "top": false,
+      "warning": false,
+      "if_2024": 4.3
+    },
+    "Dalton Transactions": {
+      "issn": "1477-9226",
+      "abbr": "Dalton Trans.",
+      "zone": "2",
+      "category": "化学",
+      "top": false,
+      "warning": false,
+      "if_2024": 3.5
+    },
+    "Organic Letters": {
+      "issn": "1523-7060",
+      "abbr": "Org. Lett.",
+      "zone": "1",
+      "category": "化学",
+      "top": false,
+      "warning": false,
+      "if_2024": 4.9
+    },
+    "Green Chemistry": {
+      "issn": "1463-9262",
+      "abbr": "Green Chem.",
+      "zone": "1",
+      "category": "化学",
+      "top": false,
+      "warning": false,
+      "if_2024": 9.8
+    },
+    "Advanced Synthesis & Catalysis": {
+      "issn": "1615-4150",
+      "abbr": "Adv. Synth. Catal.",
+      "zone": "2",
+      "category": "化学",
+      "top": false,
+      "warning": false,
+      "if_2024": 5.4
+    },
+    "Chemistry of Materials": {
+      "issn": "0897-4756",
+      "abbr": "Chem. Mater.",
+      "zone": "1",
+      "category": "材料科学",
+      "top": false,
+      "warning": false,
+      "if_2024": 7.0
+    },
+    "Journal of Physical Chemistry Letters": {
+      "issn": "1948-7185",
+      "abbr": "J. Phys. Chem. Lett.",
+      "zone": "1",
+      "category": "化学",
+      "top": false,
+      "warning": false,
+      "if_2024": 4.8
+    },
+    "Nano Letters": {
+      "issn": "1530-6984",
+      "abbr": "Nano Lett.",
+      "zone": "1",
+      "category": "材料科学",
+      "top": true,
+      "warning": false,
+      "if_2024": 9.6
+    },
+    "ACS Nano": {
+      "issn": "1936-0851",
+      "abbr": "ACS Nano",
+      "zone": "1",
+      "category": "材料科学",
+      "top": true,
+      "warning": false,
+      "if_2024": 15.8
+    },
+    "Analytical Chemistry": {
+      "issn": "0003-2700",
+      "abbr": "Anal. Chem.",
+      "zone": "1",
+      "category": "化学",
+      "top": false,
+      "warning": false,
+      "if_2024": 6.7
+    },
+    "TrAC Trends in Analytical Chemistry": {
+      "issn": "0165-9936",
+      "abbr": "TrAC",
+      "zone": "1",
+      "category": "化学",
+      "top": false,
+      "warning": false,
+      "if_2024": 11.8
+    },
+    "Chemical Engineering Journal": {
+      "issn": "1385-8947",
+      "abbr": "Chem. Eng. J.",
+      "zone": "1",
+      "category": "化学工程",
+      "top": true,
+      "warning": false,
+      "if_2024": 13.3
+    },
+    "AIChE Journal": {
+      "issn": "0001-1541",
+      "abbr": "AIChE J.",
+      "zone": "2",
+      "category": "化学工程",
+      "top": false,
+      "warning": false,
+      "if_2024": 3.7
+    },
+    "Industrial & Engineering Chemistry Research": {
+      "issn": "0888-5885",
+      "abbr": "Ind. Eng. Chem. Res.",
+      "zone": "2",
+      "category": "化学工程",
+      "top": false,
+      "warning": false,
+      "if_2024": 3.8
+    },
+    "Materials Today": {
+      "issn": "1369-7021",
+      "abbr": "Mater. Today",
+      "zone": "1",
+      "category": "材料科学",
+      "top": true,
+      "warning": false,
+      "if_2024": 21.1
+    },
+    "Joule": {
+      "issn": "2542-4351",
+      "abbr": "Joule",
+      "zone": "1",
+      "category": "能源",
+      "top": true,
+      "warning": false,
+      "if_2024": 38.6
+    },
+    "ChemSusChem": {
+      "issn": "1864-5631",
+      "abbr": "ChemSusChem",
+      "zone": "1",
+      "category": "化学",
+      "top": false,
+      "warning": false,
+      "if_2024": 7.4
+    },
+    "ACS Sustainable Chemistry & Engineering": {
+      "issn": "2168-0485",
+      "abbr": "ACS Sustain. Chem. Eng.",
+      "zone": "1",
+      "category": "化学",
+      "top": false,
+      "warning": false,
+      "if_2024": 7.1
+    }
+  },
+  "warning_list": [
+    "Journal of Hazardous Materials",
+    "Journal of Molecular Structure",
+    "Desalination and Water Treatment",
+    "International Journal of Electrochemical Science"
+  ]
+}

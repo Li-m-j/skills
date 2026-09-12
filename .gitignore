@@ -1,0 +1,33 @@
+# ── 个人密钥 / 本地状态（绝不提交）──
+api_keys.local.json
+api_keys.json
+seen_papers.json
+user_prefs.json
+api_logs.json
+*.local.json
+*.key
+*.secret
+.env
+
+# ── 备份与临时产物 ──
+_backup/
+_tmp_*/
+*.bak
+*.tmp
+~$*
+
+# ── Python ──
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# ── 编辑器 / 系统 ──
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ── 评测记录（本地留档，不上传）──
+_eval/

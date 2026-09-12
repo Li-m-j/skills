@@ -1,0 +1,296 @@
+{
+  "_disclaimer": "本文件为手工整理的参考数据（期刊分区 / 影响因子），仅供个人在检索结果中做标注使用，不代表官方发布。中科院分区数据原始权利属中国科学院文献情报中心，影响因子（JIF）属 Clarivate 商标产品；请勿再分发或用于商业用途，使用前请以官方发布为准。本文件不受本仓库 MIT License 覆盖。",
+  "version": "2026-initial",
+  "updated_at": "2026-09-08",
+  "source": "中科院《期刊分区表》医学/生物学/计算机科学子集 + 临床医学顶刊白名单 + 中科院/Scopus 预警名单",
+  "note": "v0.1 内置精简版，仅包含顶刊白名单与常见预警期刊。完整数据待年度更新时填充。覆盖范围：临床医学、基础医学、生物信息学、人工智能/机器学习。",
+  "categories": ["临床医学", "基础医学", "生物信息学", "人工智能", "综合"],
+  "journals": {
+    "New England Journal of Medicine": {
+      "issn": "0028-4793",
+      "abbr": "N. Engl. J. Med.",
+      "zone": "1",
+      "category": "临床医学",
+      "top": true,
+      "warning": false,
+      "if_2024": 158.5
+    },
+    "Lancet": {
+      "issn": "0140-6736",
+      "abbr": "Lancet",
+      "zone": "1",
+      "category": "临床医学",
+      "top": true,
+      "warning": false,
+      "if_2024": 98.4
+    },
+    "JAMA": {
+      "issn": "0098-7484",
+      "abbr": "JAMA",
+      "zone": "1",
+      "category": "临床医学",
+      "top": true,
+      "warning": false,
+      "if_2024": 120.7
+    },
+    "BMJ": {
+      "issn": "0959-8138",
+      "abbr": "BMJ",
+      "zone": "1",
+      "category": "临床医学",
+      "top": true,
+      "warning": false,
+      "if_2024": 93.6
+    },
+    "Nature Medicine": {
+      "issn": "1078-8956",
+      "abbr": "Nat. Med.",
+      "zone": "1",
+      "category": "临床医学",
+      "top": true,
+      "warning": false,
+      "if_2024": 82.9
+    },
+    "JAMA Internal Medicine": {
+      "issn": "2168-6106",
+      "abbr": "JAMA Intern. Med.",
+      "zone": "1",
+      "category": "临床医学",
+      "top": true,
+      "warning": false,
+      "if_2024": 39.0
+    },
+    "Annals of Internal Medicine": {
+      "issn": "0003-4819",
+      "abbr": "Ann. Intern. Med.",
+      "zone": "1",
+      "category": "临床医学",
+      "top": true,
+      "warning": false,
+      "if_2024": 39.2
+    },
+    "Lancet Oncology": {
+      "issn": "1470-2045",
+      "abbr": "Lancet Oncol.",
+      "zone": "1",
+      "category": "临床医学",
+      "top": true,
+      "warning": false,
+      "if_2024": 41.6
+    },
+    "Journal of Clinical Oncology": {
+      "issn": "0732-183X",
+      "abbr": "J. Clin. Oncol.",
+      "zone": "1",
+      "category": "临床医学",
+      "top": true,
+      "warning": false,
+      "if_2024": 42.1
+    },
+    "Cancer Cell": {
+      "issn": "1535-6108",
+      "abbr": "Cancer Cell",
+      "zone": "1",
+      "category": "临床医学",
+      "top": true,
+      "warning": false,
+      "if_2024": 48.8
+    },
+    "Nature Reviews Cancer": {
+      "issn": "1474-175X",
+      "abbr": "Nat. Rev. Cancer",
+      "zone": "1",
+      "category": "临床医学",
+      "top": true,
+      "warning": false,
+      "if_2024": 78.5
+    },
+    "Nature Reviews Immunology": {
+      "issn": "1474-1733",
+      "abbr": "Nat. Rev. Immunol.",
+      "zone": "1",
+      "category": "基础医学",
+      "top": true,
+      "warning": false,
+      "if_2024": 67.7
+    },
+    "Nature Reviews Molecular Cell Biology": {
+      "issn": "1471-0072",
+      "abbr": "Nat. Rev. Mol. Cell Biol.",
+      "zone": "1",
+      "category": "基础医学",
+      "top": true,
+      "warning": false,
+      "if_2024": 81.3
+    },
+    "Cell": {
+      "issn": "0092-8674",
+      "abbr": "Cell",
+      "zone": "1",
+      "category": "综合",
+      "top": true,
+      "warning": false,
+      "if_2024": 45.5
+    },
+    "Nature": {
+      "issn": "0028-0836",
+      "abbr": "Nature",
+      "zone": "1",
+      "category": "综合",
+      "top": true,
+      "warning": false,
+      "if_2024": 50.5
+    },
+    "Science": {
+      "issn": "0036-8075",
+      "abbr": "Science",
+      "zone": "1",
+      "category": "综合",
+      "top": true,
+      "warning": false,
+      "if_2024": 44.7
+    },
+    "Nature Methods": {
+      "issn": "1548-7091",
+      "abbr": "Nat. Methods",
+      "zone": "1",
+      "category": "生物信息学",
+      "top": true,
+      "warning": false,
+      "if_2024": 36.1
+    },
+    "Bioinformatics": {
+      "issn": "1367-4803",
+      "abbr": "Bioinformatics",
+      "zone": "1",
+      "category": "生物信息学",
+      "top": true,
+      "warning": false,
+      "if_2024": 5.8
+    },
+    "Nucleic Acids Research": {
+      "issn": "0305-1048",
+      "abbr": "Nucleic Acids Res.",
+      "zone": "1",
+      "category": "生物信息学",
+      "top": true,
+      "warning": false,
+      "if_2024": 16.6
+    },
+    "BMC Bioinformatics": {
+      "issn": "1471-2105",
+      "abbr": "BMC Bioinformatics",
+      "zone": "3",
+      "category": "生物信息学",
+      "top": false,
+      "warning": false,
+      "if_2024": 3.0
+    },
+    "PLOS Computational Biology": {
+      "issn": "1553-7358",
+      "abbr": "PLOS Comput. Biol.",
+      "zone": "2",
+      "category": "生物信息学",
+      "top": false,
+      "warning": false,
+      "if_2024": 4.3
+    },
+    "Cell Systems": {
+      "issn": "2405-4712",
+      "abbr": "Cell Syst.",
+      "zone": "1",
+      "category": "生物信息学",
+      "top": true,
+      "warning": false,
+      "if_2024": 9.0
+    },
+    "Nature Machine Intelligence": {
+      "issn": "2522-5839",
+      "abbr": "Nat. Mach. Intell.",
+      "zone": "1",
+      "category": "人工智能",
+      "top": true,
+      "warning": false,
+      "if_2024": 25.9
+    },
+    "Journal of Machine Learning Research": {
+      "issn": "1532-4435",
+      "abbr": "JMLR",
+      "zone": "1",
+      "category": "人工智能",
+      "top": true,
+      "warning": false,
+      "if_2024": 5.0
+    },
+    "IEEE Transactions on Pattern Analysis and Machine Intelligence": {
+      "issn": "0162-8828",
+      "abbr": "IEEE Trans. Pattern Anal. Mach. Intell.",
+      "zone": "1",
+      "category": "人工智能",
+      "top": true,
+      "warning": false,
+      "if_2024": 24.3
+    },
+    "Medical Image Analysis": {
+      "issn": "1361-8415",
+      "abbr": "Med. Image Anal.",
+      "zone": "1",
+      "category": "人工智能",
+      "top": true,
+      "warning": false,
+      "if_2024": 10.7
+    },
+    "Journal of Biomedical Informatics": {
+      "issn": "1532-0464",
+      "abbr": "J. Biomed. Inform.",
+      "zone": "1",
+      "category": "生物信息学",
+      "top": false,
+      "warning": false,
+      "if_2024": 4.5
+    },
+    "Lancet Digital Health": {
+      "issn": "2589-7500",
+      "abbr": "Lancet Digit. Health",
+      "zone": "1",
+      "category": "人工智能",
+      "top": true,
+      "warning": false,
+      "if_2024": 24.1
+    },
+    "npj Digital Medicine": {
+      "issn": "2398-6352",
+      "abbr": "npj Digit. Med.",
+      "zone": "1",
+      "category": "人工智能",
+      "top": true,
+      "warning": false,
+      "if_2024": 12.8
+    },
+    "Briefings in Bioinformatics": {
+      "issn": "1467-5463",
+      "abbr": "Brief. Bioinform.",
+      "zone": "1",
+      "category": "生物信息学",
+      "top": true,
+      "warning": false,
+      "if_2024": 9.5
+    },
+    "Patterns": {
+      "issn": "2666-3899",
+      "abbr": "Patterns",
+      "zone": "1",
+      "category": "人工智能",
+      "top": false,
+      "warning": false,
+      "if_2024": 7.4
+    }
+  },
+  "warning_journals": [
+    {
+      "name": "Journal of Medical Internet Research (JMIR)",
+      "reason": "2024 年中科院《国际期刊预警名单》医学大类低风险",
+      "level": "low"
+    }
+  ]
+}

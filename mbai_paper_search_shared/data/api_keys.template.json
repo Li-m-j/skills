@@ -1,0 +1,8 @@
+{
+  "_comment": "mbai_paper_search 共享 API key 模板。team-shared，commit 入仓。个人 key 写入 api_keys.local.json。",
+  "openalex_api_key": "REPLACE_WITH_YOUR_OPENALEX_KEY",
+  "semantic_scholar_api_key": "REPLACE_WITH_YOUR_SS_KEY",
+  "europe_pmc_contact_email": "your.email@example.com",
+  "ncbi_api_key": "REPLACE_WITH_YOUR_NCBI_KEY",
+  "mailto_for_openalex": "your.email@example.com"
+}
