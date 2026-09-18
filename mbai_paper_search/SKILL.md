@@ -9,7 +9,7 @@ description: |
   反幻觉红线：元数据 only from API，缺则 N/A；交付前必须用 scripts/validate_output.py 做 DOI + PMID 双反查校验。
   医学红线：不替代临床判断、不输出用药/诊疗建议、预印本必须显式标注、PII 硬拦截。
   执行：优先运行 scripts/paper_search_client.py（五源合并 + 去重 + Markdown 导出 + --verify）；首次使用先按 §0 Quickstart 配置。
-  不适用：化学文献检索 → qm_paper_search；论文 PDF 深度阅读 → paper-deep-reading。
+  不适用：化学文献检索 → qm_paper_search；统计/计量经济/经济学文献检索 → se_paper_search；论文 PDF 深度阅读 → paper-deep-reading。
 ---
 
 <!-- 历次修订记录（原本文件顶部 HTML Modification Log 注释块）已迁移至 ./CHANGELOG.md -->
@@ -99,7 +99,7 @@ python validate_output.py "<刚生成的 .md 路径>" --pretty     # 校验率 <
 
 **不适用**
 
-- 非医学 / 非生物信息学 / 非 AI 领域（纯化学 → `qm_paper_search`；其他学科请用对应 skill）
+- 非医学 / 非生物信息学 / 非 AI 领域（纯化学 → `qm_paper_search`；统计 / 计量经济 / 经济学 → `se_paper_search`；其他学科请用对应 skill）
 - 全文下载、翻译、润色、本地 PDF 管理（精读 → `paper-deep-reading` 或对应领域阅读 skill）
 - **临床诊疗决策**（明确禁止，见 §9.7）
 
@@ -299,7 +299,7 @@ else:
 
 **显式覆盖**（向后兼容 v0.1/v0.2 习惯）：`精细检索 X` / `粗放检索 X`；旧写法 `mbai_paper_search_fine X` / `mbai_paper_search_broad X` 也识别并重定向（见两目录 `DEPRECATED.md`）。
 
-**与 qm_paper_search 共存**：按主题关键词自动选择——`PD-1 / AlphaFold / scRNA-seq / 医学大模型` 走本 skill；`COF / 酶催化 / 钙钛矿` 走 `qm_paper_search`。
+**与 qm_paper_search 共存**：按主题关键词自动选择——`PD-1 / AlphaFold / scRNA-seq / 医学大模型` 走本 skill；`COF / 酶催化 / 钙钛矿` 走 `qm_paper_search`；`difference-in-differences / 面板数据 / 因果推断（经济口径）` 走 `se_paper_search`。
 
 ### 5.2 去重机制
 
@@ -428,7 +428,7 @@ else:
 | 429 限流 | "⏳ {source} 限流，已退避 30s 后重试（第 N/3 次）" | backoff 重试 |
 | 某源不可用 | "⚠️ {source} 当前不可用，已改用 {fallback}；本次结果按 {fallback} 口径返回" | 切兜底源 |
 | 全部源失败 | "❌ 全部数据源失败：<每源一行原因>。请检查网络或稍后重试；也可改用 web_search 兜底（覆盖率会下降）" | 停止 |
-| 非医学/生信/AI 主题 | "「X」看起来不属于医学/生信/AI，本 skill 不覆盖。要改用 qm_paper_search（化学）吗？（Y/N）" | **唯一允许的交互** |
+| 非医学/生信/AI 主题 | "「X」看起来不属于医学/生信/AI，本 skill 不覆盖。要改用 qm_paper_search（化学）或 se_paper_search（统计/经济）吗？（Y/N）" | **唯一允许的交互** |
 | 查询含疑似 PII | "⚠️ 查询含 13-18 位连续数字（疑似患者 ID / 身份证号），出于隐私保护已拒绝执行，请脱敏后重试。" | 停止 |
 | 校验不达标 | "⚠️ 交付前校验：{N} 个 DOI/PMID 中 {M} 个未通过反查，已标 ❌，请人工复核。" | 标记并交付 |
 | 用户问诊疗建议 | "本工具仅供学术检索，**不提供用药或诊疗建议**。请咨询专业医师并以现行临床指南为准。" | 拒答 |

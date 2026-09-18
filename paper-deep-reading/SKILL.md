@@ -7,7 +7,7 @@ description: |
   脚本链路：PDF 多后端文本提取（pdftotext→PyMuPDF→pdfplumber，失败给 OCR 兜底指引）→ 中英文章节定位（5 大章节）→ 图表引用 + 候选图片池提取 → 论文类型判定（7 类枚举）。
   报告：原创研究按 7 模块 10 要点、综述按 5 模块 8 要点，图文并茂；含术语一致性控制（防同词异译与幻觉）、作者/致谢/SI 溯源、覆盖度声明、软件许可证全清单。
   反幻觉红线：数值与结论只取 PDF 原文，未见内容必须写进覆盖度声明，禁止编造实验细节或补全缺失数据。
-  不适用：文献清单检索 → qm_paper_search（化学）/ mbai_paper_search（医学/生信/AI）。
+  不适用：文献清单检索 → qm_paper_search（化学）/ mbai_paper_search（医学/生信/AI）/ se_paper_search（统计/计量经济/经济学）。
 ---
 
 <!-- 历次修订记录（原本文件顶部 HTML Modification Log 注释块 + §10 版本变更表）已迁移至 ./CHANGELOG.md -->

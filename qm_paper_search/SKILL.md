@@ -7,7 +7,7 @@ description: |
   精细默认：article-only、10 篇、近 3 年、相关度排序；粗放默认：review-only、15 篇、时间不限、含方案 H 宽召回。
   反幻觉红线：全部元数据 only from API，缺则 N/A；交付前必须用 scripts/validate_output.py 做 DOI 级反查校验。
   执行：优先运行 scripts/paper_search_client.py（SS/OpenAlex/Crossref 三源合并 + 去重 + Markdown 导出 + --verify）；首次使用先按 §0 Quickstart 配置。
-  不适用：医学/生信/AI 文献检索 → mbai_paper_search；论文 PDF 深度阅读 → paper-deep-reading。
+  不适用：医学/生信/AI 文献检索 → mbai_paper_search；统计/计量经济/经济学文献检索 → se_paper_search；论文 PDF 深度阅读 → paper-deep-reading。
 ---
 
 <!-- 历次修订记录（原本文件顶部 HTML Modification Log 注释块）已迁移至 ./CHANGELOG.md -->
@@ -92,7 +92,7 @@ python validate_output.py "<刚生成的 .md 路径>" --pretty     # 校验率 <
 
 **不适用**
 
-- 非化学领域（医学 / 生信 / AI 请用 `mbai_paper_search` 系列；生物、物理、材料工程请用对应领域 skill）
+- 非化学领域（医学 / 生信 / AI 请用 `mbai_paper_search` 系列；统计 / 计量经济 / 经济学请用 `se_paper_search`；生物、物理、材料工程请用对应领域 skill）
 - 全文下载、翻译、润色（下载与精读 → 用 `paper-deep-reading`）
 - 已知方向但需要逐篇精读 → 用 `paper-deep-reading`（两者衔接方式见该 skill 的 `references/pipeline-orchestration.md`）
 
@@ -440,7 +440,7 @@ v0.2.x 的"跨 topic 默认不去重"在实践中反用户：做过"机器学习
 | 429 限流 | "⏳ {source} 限流，已退避 30s 后重试（第 N/3 次）" | backoff 重试 |
 | 某源整体不可用 | "⚠️ {source} 当前不可用，已改用 {fallback}；本次结果按 {fallback} 口径返回" | 切兜底源 |
 | 全部源失败 | "❌ 全部数据源失败：<每源一行原因>。请检查网络或稍后重试；也可改用 web_search 兜底（覆盖率会下降）" | 停止 |
-| 非化学主题 | "「X」看起来属于 {领域}，本 skill 专精化学。仍按化学口径检索吗？（Y/N）；或改用 mbai_paper_search（医学/生信/AI）" | **唯一允许的交互**，其余场景不应阻塞 |
+| 非化学主题 | "「X」看起来属于 {领域}，本 skill 专精化学。仍按化学口径检索吗？（Y/N）；或改用 mbai_paper_search（医学/生信/AI）/ se_paper_search（统计/经济）" | **唯一允许的交互**，其余场景不应阻塞 |
 | DOI 校验不达标 | "⚠️ 交付前校验：N 个 DOI 中 M 个未通过 Crossref 反查，已标 ❌，请人工复核这些条目" | 标记并交付 |
 
 > 原则：**能自动降级就自动降级**（附一条 ⚠️ 说明），只在"必须由用户决策"时才提问。

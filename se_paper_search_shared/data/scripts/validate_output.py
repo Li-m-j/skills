@@ -1,0 +1,371 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""validate_output.py — 反幻觉代码化校验器（DOI + arXiv ID 双反查）。
+
+读取 se_paper_search 生成的 .md 文献名录，提取所有 **DOI** 与 **arXiv ID**，
+分别向 Crossref / arXiv Export API 反查确认条目真实存在，生成验证报告。
+
+与 `qm_paper_search_shared/.../validate_output.py` 同构，差异：
+    - 新增 **arXiv ID 反查**（export.arxiv.org/api/query?id_list=），因为统计/计量
+      领域大量工作论文只有 arXiv ID 没有 DOI；
+    - 既无 DOI 又无 arXiv ID 的条目（SSRN / NBER 编号页等）无法机器反查，
+      报告不会覆盖它们——交付时此类条目必须人工复核。
+
+这是代码化反幻觉的关键工具——"严禁 LLM 编造"从文档恳求变成脚本校验：
+DOI 必须在 Crossref 响应里找到 title，arXiv ID 必须在 arXiv API 响应里找到 entry。
+
+用法：
+    python validate_output.py paper_search_fine_xxx_20260918.md
+    python validate_output.py paper_search_*.md --pretty
+    python validate_output.py *.md --json-out report.json
+    python validate_output.py *.md --threshold 0.95  # 校验率 < 95% 视为失败
+
+跨平台：仅依赖 Python 3.8+ 标准库 + urllib；不需要 pip install。
+退出码：0 通过；2 校验率低于阈值或文件缺失。
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import ssl
+import sys
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+import xml.etree.ElementTree as ET
+from collections import OrderedDict
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
+# Windows GBK 控制台兼容：输出含 ✅/❌/⚠️，必须强制 UTF-8
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        try:
+            _stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
+CROSSREF_API = "https://api.crossref.org/works/{doi}"
+ARXIV_API = "http://export.arxiv.org/api/query"
+USER_AGENT = "se_paper_search/0.1 (Mavis; DOI+arXiv validation)"
+DEFAULT_TIMEOUT = 15  # 秒
+DEFAULT_RATE_LIMIT_SLEEP = 0.1  # Crossref polite pool: 50 req/s
+ARXIV_RATE_LIMIT_SLEEP = 3.0    # arXiv 礼仪要求 ≥3s 间隔
+
+# DOI 提取正则（10.xxxx/xxxx 形式 + 链接形式 https://doi.org/...）
+# 注意：必须排除 BibTeX 的包裹字符 {}（否则 doi = {10.x/y} 会被抽成 "10.x/y}"）
+_DOI_RE = re.compile(r"(?:https?://(?:dx\.)?doi\.org/)?(10\.\d{4,9}/[^\s\)\]\"'<>{},;]+)", re.I)
+# 行尾可能残留的分隔符
+_DOI_TRAIL = ".,;:}）)\u3002\uff0c"
+# arXiv ID 提取："arXiv:2309.12345"（可带 vN）或 abs 链接
+_ARXIV_RE = re.compile(r"(?:arXiv:|arxiv\.org/abs/)(\d{4}\.\d{4,5}(?:v\d+)?)", re.I)
+
+
+def urlopen_ssl_fallback(req, timeout):
+    """urlopen 的只读兜底：本机证书链验证失败时（部分 Windows 环境对
+    export.arxiv.org 缺中间证书）退回 unverified context 再试一次。
+
+    仅用于公开元数据的只读 GET；先尝试正常验证，失败才降级。
+    """
+    try:
+        return urllib.request.urlopen(req, timeout=timeout)
+    except urllib.error.URLError as e:
+        reason = getattr(e, "reason", None)
+        if isinstance(reason, ssl.SSLCertVerificationError):
+            return urllib.request.urlopen(req, timeout=timeout,
+                                          context=ssl._create_unverified_context())
+        raise
+
+
+def extract_dois(md_text: str) -> List[str]:
+    """从 .md 文本中提取所有 DOI。
+
+    匹配 markdown 链接 `[10.xxxx](https://doi.org/10.xxxx)`、裸 DOI、以及
+    BibTeX/RIS 里的 `doi = {10.xxxx}`（自动剥掉包裹花括号）。
+    返回去重后的列表（按出现顺序）。
+    """
+    seen = set()
+    out = []
+    for m in _DOI_RE.finditer(md_text):
+        doi = m.group(1).rstrip(_DOI_TRAIL)
+        # 去掉可能附带的 query string (e.g. 10.xxxx/xxx?foo=bar)
+        if "?" in doi:
+            doi = doi.split("?")[0]
+        doi = doi.rstrip(_DOI_TRAIL)
+        if doi.lower().startswith("10.") and doi not in seen:
+            seen.add(doi)
+            out.append(doi)
+    return out
+
+
+def crossref_lookup(doi: str, timeout: int = DEFAULT_TIMEOUT) -> Tuple[Optional[str], Optional[str]]:
+    """向 Crossref API 查 DOI，返回 (title, error)。
+
+    成功：返回 (title, None)
+    失败：返回 (None, error_message)
+    """
+    url = CROSSREF_API.format(doi=urllib.parse.quote(doi, safe="/"))
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json"})
+    try:
+        with urlopen_ssl_fallback(req, timeout) as resp:
+            if resp.status != 200:
+                return None, f"HTTP {resp.status}"
+            data = json.loads(resp.read().decode("utf-8"))
+            msg = data.get("message", {})
+            title_list = msg.get("title") or []
+            if title_list:
+                return title_list[0], None
+            return None, "no title in Crossref response"
+    except urllib.error.HTTPError as e:
+        return None, f"HTTP {e.code} {e.reason}"
+    except urllib.error.URLError as e:
+        return None, f"URL error: {e.reason}"
+    except (json.JSONDecodeError, KeyError) as e:
+        return None, f"parse error: {e}"
+    except Exception as e:
+        return None, f"unexpected: {type(e).__name__}: {e}"
+
+
+def validate_doi(doi: str, retries: int = 2) -> Tuple[str, Optional[str], Optional[str]]:
+    """校验单个 DOI，retries 次重试，返回 (status, crossref_title, error)。
+
+    status: 'verified' | 'not_found' | 'error'
+    """
+    last_error = None
+    for attempt in range(retries + 1):
+        title, err = crossref_lookup(doi)
+        if title is not None:
+            return "verified", title, None
+        last_error = err
+        if err and "HTTP 4" in err:
+            # 4xx: 客户端错误（DOI 不存在、权限），不重试
+            if "404" in err:
+                return "not_found", None, err
+            break
+        if attempt < retries:
+            time.sleep(DEFAULT_RATE_LIMIT_SLEEP * (attempt + 1))
+    return "error", None, last_error or "unknown error"
+
+
+def extract_arxiv_ids(md_text: str) -> List[str]:
+    """从 .md 文本中提取所有 arXiv ID（"arXiv:2309.12345" 或 abs 链接形式）。
+
+    返回去重后的列表（按出现顺序），保留 vN 后缀（arXiv API 接受带版本号查询）。
+    """
+    seen = set()
+    out = []
+    for m in _ARXIV_RE.finditer(md_text):
+        aid = m.group(1).lower()
+        if aid not in seen:
+            seen.add(aid)
+            out.append(aid)
+    return out
+
+
+def arxiv_lookup(arxiv_id: str, timeout: int = DEFAULT_TIMEOUT) -> Tuple[Optional[str], Optional[str]]:
+    """向 arXiv Export API 查 ID，返回 (title, error)。"""
+    url = ARXIV_API + "?" + urllib.parse.urlencode({"id_list": arxiv_id, "max_results": 1})
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    try:
+        with urlopen_ssl_fallback(req, timeout) as resp:
+            root = ET.fromstring(resp.read())
+            ns = {"atom": "http://www.w3.org/2005/Atom"}
+            entries = root.findall("atom:entry", ns)
+            if not entries:
+                return None, "empty feed (ID 不存在或已被撤销)"
+            # arXiv 对未知 ID 也会返回一条只含 error 的 entry
+            title = (entries[0].findtext("atom:title", default="", namespaces=ns) or "").strip()
+            if not title:
+                return None, "entry without title (可能是 arXiv 错误响应)"
+            # 归一化空白（arXiv 标题常含换行+多空格）
+            title = re.sub(r"\s+", " ", title)
+            return title, None
+    except urllib.error.HTTPError as e:
+        return None, f"HTTP {e.code} {e.reason}"
+    except urllib.error.URLError as e:
+        return None, f"URL error: {e.reason}"
+    except ET.ParseError as e:
+        return None, f"XML parse error: {e}"
+    except Exception as e:
+        return None, f"unexpected: {type(e).__name__}: {e}"
+
+
+def validate_arxiv(arxiv_id: str, retries: int = 2) -> Tuple[str, Optional[str], Optional[str]]:
+    """校验单个 arXiv ID，返回 (status, arxiv_title, error)。status 同 DOI 侧。"""
+    last_error = None
+    base_id = re.sub(r"v\d+$", "", arxiv_id)  # 版本号重试时去掉，退回最新版
+    for attempt in range(retries + 1):
+        query_id = arxiv_id if attempt == 0 else base_id
+        title, err = arxiv_lookup(query_id)
+        if title is not None:
+            return "verified", title, None
+        last_error = err
+        if err and "empty feed" in err:
+            # ID 不存在——去掉版本号再确认一次，仍无则判定 not_found
+            if query_id != base_id:
+                arxiv_id = base_id
+                continue
+            return "not_found", None, err
+        if attempt < retries:
+            # arXiv 偶发 503 突发（实测短间隔重试仍吃 503）：指数退避 6s/12s
+            time.sleep(ARXIV_RATE_LIMIT_SLEEP * (2 ** (attempt + 1)))
+    return "error", None, last_error or "unknown error"
+
+
+def validate_markdown_file(md_path: Path, verbose: bool = True) -> Dict:
+    """校验单个 .md 文件（DOI 反查 Crossref + arXiv ID 反查 arXiv），返回结构化报告。
+
+    兼容旧字段：total_dois / verified / not_found / errors / verification_rate /
+    results 仍指 DOI 侧；arXiv 侧用 total_arxivs / verified_arxivs / arxiv_results；
+    合并通过率见 combined_* 字段。
+    """
+    text = md_path.read_text(encoding="utf-8", errors="replace")
+    dois = extract_dois(text)
+    arxivs = extract_arxiv_ids(text)
+
+    if verbose:
+        print(f"  找到 {len(dois)} 个 DOI + {len(arxivs)} 个 arXiv ID，开始校验...")
+
+    results = []
+    for i, doi in enumerate(dois, 1):
+        status, crossref_title, err = validate_doi(doi)
+        results.append({
+            "doi": doi,
+            "status": status,
+            "crossref_title": crossref_title,
+            "error": err,
+        })
+        if verbose:
+            icon = {"verified": "✅", "not_found": "❌", "error": "⚠️"}.get(status, "?")
+            print(f"    [{i}/{len(dois)}] {icon} DOI {doi}" + (f" — {crossref_title[:60]}" if crossref_title else f" — {err}"))
+        # Polite rate limit
+        if i < len(dois):
+            time.sleep(DEFAULT_RATE_LIMIT_SLEEP)
+
+    arxiv_results = []
+    for i, aid in enumerate(arxivs, 1):
+        status, arxiv_title, err = validate_arxiv(aid)
+        arxiv_results.append({
+            "arxiv_id": aid,
+            "status": status,
+            "arxiv_title": arxiv_title,
+            "error": err,
+        })
+        if verbose:
+            icon = {"verified": "✅", "not_found": "❌", "error": "⚠️"}.get(status, "?")
+            print(f"    [{i}/{len(arxivs)}] {icon} arXiv:{aid}" + (f" — {arxiv_title[:60]}" if arxiv_title else f" — {err}"))
+        if i < len(arxivs):
+            time.sleep(ARXIV_RATE_LIMIT_SLEEP)
+
+    verified_doi = sum(1 for r in results if r["status"] == "verified")
+    verified_ax = sum(1 for r in arxiv_results if r["status"] == "verified")
+    combined_total = len(dois) + len(arxivs)
+    summary = {
+        "file": str(md_path),
+        "total_dois": len(dois),
+        "verified": verified_doi,
+        "not_found": sum(1 for r in results if r["status"] == "not_found"),
+        "errors": sum(1 for r in results if r["status"] == "error"),
+        "total_arxivs": len(arxivs),
+        "verified_arxivs": verified_ax,
+        "arxiv_not_found": sum(1 for r in arxiv_results if r["status"] == "not_found"),
+        "arxiv_errors": sum(1 for r in arxiv_results if r["status"] == "error"),
+        "combined_total": combined_total,
+        "combined_verified": verified_doi + verified_ax,
+        "verification_rate": (
+            sum(1 for r in results if r["status"] == "verified") / len(dois)
+            if dois else 1.0
+        ),
+        "combined_rate": (verified_doi + verified_ax) / combined_total if combined_total else 1.0,
+        "results": results,
+        "arxiv_results": arxiv_results,
+    }
+    return summary
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        prog="validate_output.py",
+        description="se_paper_search .md 文件反幻觉校验器（Crossref DOI + arXiv ID 双反查）",
+    )
+    parser.add_argument("files", nargs="+", help=".md 文件路径（支持 glob）")
+    parser.add_argument("--pretty", action="store_true", help="输出人类可读报告")
+    parser.add_argument("--json-out", help="输出 JSON 报告到指定文件")
+    parser.add_argument("--threshold", type=float, default=0.95,
+                        help="合并校验率阈值（默认 0.95）；低于此值退出码 2")
+    parser.add_argument("--no-network", action="store_true",
+                        help="跳过实际校验，仅做 DOI / arXiv ID 提取（用于离线/单元测试）")
+    parser.add_argument("--rate-limit", type=float, default=DEFAULT_RATE_LIMIT_SLEEP,
+                        help=f"Crossref 请求间隔（秒，默认 {DEFAULT_RATE_LIMIT_SLEEP}）")
+    args = parser.parse_args()
+
+    all_summaries = []
+    overall_pass = True
+    for fpath in args.files:
+        path = Path(fpath)
+        if not path.exists():
+            print(f"❌ 文件不存在: {fpath}", file=sys.stderr)
+            overall_pass = False
+            continue
+
+        print(f"\n=== {path.name} ===")
+        if args.no_network:
+            # 仅做提取
+            text = path.read_text(encoding="utf-8", errors="replace")
+            dois = extract_dois(text)
+            arxivs = extract_arxiv_ids(text)
+            summary = {
+                "file": str(path),
+                "total_dois": len(dois),
+                "verified": 0,
+                "not_found": 0,
+                "errors": 0,
+                "total_arxivs": len(arxivs),
+                "verified_arxivs": 0,
+                "combined_total": len(dois) + len(arxivs),
+                "combined_verified": 0,
+                "verification_rate": None,
+                "combined_rate": None,
+                "results": [{"doi": d, "status": "skipped", "crossref_title": None, "error": "no-network mode"} for d in dois],
+                "arxiv_results": [{"arxiv_id": a, "status": "skipped", "arxiv_title": None, "error": "no-network mode"} for a in arxivs],
+            }
+            print(f"  找到 {len(dois)} 个 DOI + {len(arxivs)} 个 arXiv ID（--no-network 模式未校验）")
+        else:
+            summary = validate_markdown_file(path, verbose=True)
+
+        all_summaries.append(summary)
+        rate = summary.get("combined_rate")
+        if rate is None:
+            rate = summary.get("verification_rate")
+        if rate is not None and rate < args.threshold:
+            overall_pass = False
+
+    # 汇总
+    if args.pretty:
+        print("\n" + "=" * 60)
+        print("  校验汇总")
+        print("=" * 60)
+        for s in all_summaries:
+            rate = s.get("combined_rate")
+            rate_str = f"{rate*100:.1f}%" if rate is not None else "skipped"
+            print(f"  {Path(s['file']).name}: DOI {s['verified']}/{s['total_dois']} · "
+                  f"arXiv {s.get('verified_arxivs', 0)}/{s.get('total_arxivs', 0)} · "
+                  f"合并 {rate_str}")
+        print(f"\n  阈值: {args.threshold*100:.0f}%")
+        print(f"  总体: {'✅ PASS' if overall_pass else '❌ FAIL'}")
+
+    if args.json_out:
+        Path(args.json_out).write_text(
+            json.dumps(all_summaries, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        print(f"\n  JSON 报告已写入: {args.json_out}")
+
+    return 0 if overall_pass else 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())

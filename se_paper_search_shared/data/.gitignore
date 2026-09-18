@@ -1,0 +1,24 @@
+# 个人本地文件，不提交到 git
+api_keys.local.json
+seen_papers.local.json
+*.local.json
+
+# 用户临时文件
+*.tmp
+*.bak
+
+# 敏感信息兜底（即使误提交）
+*_key.txt
+*_secret.txt
+
+# ── 个人数据 / 本地状态（打包与提交都必须忽略）──
+seen_papers.json
+user_prefs.json
+api_logs.json
+api_keys.local.json
+*.local.json
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/

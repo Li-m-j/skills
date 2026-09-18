@@ -1,7 +1,7 @@
 # 检索 → 精读 → 存档：两个 skill 的流水线衔接（v0.4）
 
 > 本文解决 `skill锐评.md` 的跨 skill 问题①"闭环没接上"与②"数据资产分散"。
-> 适用：`qm_paper_search`（化学检索）+ `paper-deep-reading`（深度阅读报告），以及同构的 `mbai_paper_search_*`（医学/生信/AI）。
+> 适用：`qm_paper_search`（化学检索）+ `paper-deep-reading`（深度阅读报告），以及同构的 `mbai_paper_search_*`（医学/生信/AI）、`se_paper_search`（统计/计量经济/经济学，其条目以 DOI + arXiv ID 为反查键）。
 
 ---
 
