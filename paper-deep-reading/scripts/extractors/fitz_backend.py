@@ -19,6 +19,7 @@ def extract_with_fitz(pdf_path: str) -> Tuple[str, int]:
     """后端 2：PyMuPDF(fitz)。"""
     if not HAS_FITZ:
         return "", 0
+    import fitz  # type: ignore  # 延迟 import；HAS_FITZ 已确认
     doc = None
     try:
         doc = fitz.open(pdf_path)

@@ -19,6 +19,7 @@ def extract_with_pdfplumber(pdf_path: str) -> Tuple[str, int]:
     """后端 3：pdfplumber。"""
     if not HAS_PDFPLUMBER:
         return "", 0
+    import pdfplumber  # type: ignore  # 延迟 import；HAS_PDFPLUMBER 已确认
     try:
         with pdfplumber.open(pdf_path) as pdf:  # type: ignore
             page_count = len(pdf.pages)

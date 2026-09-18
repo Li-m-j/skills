@@ -1,4 +1,4 @@
-# mbai_paper_search_setup.ps1
+﻿# mbai_paper_search_setup.ps1
 # 作用: 首次使用 mbai_paper_search 系列的初始化向导（带交互）
 # 用法:
 #   .\mbai_paper_search_setup.ps1                                  # 交互式

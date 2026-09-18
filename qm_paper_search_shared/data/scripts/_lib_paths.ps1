@@ -1,4 +1,4 @@
-# _lib_paths.ps1 (qm_paper_search_shared/data/scripts/)
+﻿# _lib_paths.ps1 (qm_paper_search_shared/data/scripts/)
 # 统一解析 data 根目录的 fallback chain。
 #
 # 用法 A — dot-source:

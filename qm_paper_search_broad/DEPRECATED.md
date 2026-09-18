@@ -1,5 +1,8 @@
 # ⚠️ DEPRECATED · 此目录已重定向
 
+> **2026-09-18**：本目录内的 `SKILL.md` 已改名为 `SKILL.md.disabled`，skill 加载器不再扫描本目录（此前旧版触发词会与新版 skill 冲突、覆盖默认参数）。
+
+
 > **状态**：qm_paper_search_broad v0.2.2 已于 2026-09-12 合并入单 skill。
 > **新位置**：`qm_paper_search/`（当前 **v0.4.0**；合并发生在 v0.3.0）
 > **合并原因**：v0.2.x 期间 fine + broad 双 skill 60% 文档重复（反幻觉 / 法规 / API key 等章节）、三线维护成本高。v0.3.0 合并后用户只需用"文献检索 X"统一触发词，mode 由 skill 内部自动推断。

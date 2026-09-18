@@ -1,4 +1,4 @@
-# qm_paper_search_setup.ps1
+﻿# qm_paper_search_setup.ps1
 # 作用: 首次使用本 skill 时的初始化向导（带交互）
 # 用法:
 #   .\qm_paper_search_setup.ps1                              # 交互式

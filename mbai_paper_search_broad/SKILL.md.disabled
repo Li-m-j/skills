@@ -1,3 +1,6 @@
+﻿<!-- SKILL.md.disabled — 2026-09-18 停用：文件名不再是 SKILL.md，skill 加载器不会扫描本文件。
+     旧版触发词与新单 skill 冲突（曾导致同目录出现两个可加载 skill、旧默认参数覆盖新版）。
+     内容原样保留仅作历史回溯；实际使用请见重定向目标目录。 -->
 ---
 name: mbai_paper_search_broad
 version: 0.2

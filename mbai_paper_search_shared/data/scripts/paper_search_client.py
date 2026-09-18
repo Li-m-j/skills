@@ -251,7 +251,7 @@ def blank_record() -> Dict[str, Any]:
         "keywords": [], "mesh": [], "pub_types": [], "evidence": "",
         "trial_ids": [], "tldr": "", "citation_count": None, "source": "",
         "sources": [], "oa_url": "", "is_preprint": False, "preprint_server": "",
-        "concepts": [],
+        "concepts": [], "kw_note": "",
     }
 
 
@@ -319,7 +319,8 @@ def parse_openalex(item: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     r["volume"] = str(biblio.get("volume") or "")
     r["issue"] = str(biblio.get("issue") or "")
     first, last = biblio.get("first_page"), biblio.get("last_page")
-    r["page"] = f"{first}-{last}" if first and last else (first or "")
+    r["page"] = (f"{first}-{last}" if first and last and str(first) != str(last)
+                 else str(first or last or ""))
     r["doi"] = norm_doi(item.get("doi"))
     r["authors"] = [((a.get("author") or {}).get("display_name") or "").strip()
                     for a in (item.get("authorships") or [])]
@@ -328,6 +329,8 @@ def parse_openalex(item: Dict[str, Any]) -> Optional[Dict[str, Any]]:
                 for c in (item.get("concepts") or []) if c.get("display_name")]
     r["concepts"] = concepts[:12]
     r["keywords"] = r["concepts"][:8]
+    if r["keywords"]:
+        r["kw_note"] = "概念标签，来自 OpenAlex concepts"
     r["citation_count"] = item.get("cited_by_count")
     oa = item.get("open_access") or {}
     if isinstance(oa, dict):
@@ -698,6 +701,8 @@ def merge_records(records: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
             base["mesh"] = rec["mesh"]
         if not base.get("keywords") and rec.get("keywords"):
             base["keywords"] = rec["keywords"]
+            if rec.get("kw_note") and not base.get("kw_note"):
+                base["kw_note"] = rec["kw_note"]
         if base.get("citation_count") is None and rec.get("citation_count") is not None:
             base["citation_count"] = rec["citation_count"]
         base["pub_types"] = sorted(set(base.get("pub_types") or []) | set(rec.get("pub_types") or []))
@@ -1140,7 +1145,8 @@ def render_markdown(query, topic_name, mode, records, index, sources_used,
         out.append(f"- **临床试验注册号**："
                    f"{', '.join(rec.get('trial_ids') or []) if rec.get('trial_ids') else NA}")
         kws = rec.get("keywords") or []
-        out.append(f"- **关键词**：{', '.join(kws) if kws else NA}")
+        kw_label = f"关键词（{rec['kw_note']}）" if rec.get("kw_note") else "关键词"
+        out.append(f"- **{kw_label}**：{', '.join(kws) if kws else NA}")
         ab = (rec.get("abstract") or "").strip()
         out.append(f"- **摘要原文**：{ab if ab else 'N/A（出版商屏蔽，到 DOI 原页拉）'}")
         out.append(f"- **TLDR**（AI 总结）：{rec.get('tldr') or NA}")

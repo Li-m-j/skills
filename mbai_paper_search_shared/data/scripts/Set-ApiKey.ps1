@@ -1,4 +1,4 @@
-# Set-ApiKey.ps1 (mbai 版)
+﻿# Set-ApiKey.ps1 (mbai 版)
 # 作用: 设置/更新/删除 API key
 # 用法:
 #   .\Set-ApiKey.ps1 -Provider openalex -Key "l1..."

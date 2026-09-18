@@ -31,6 +31,14 @@ from collections import OrderedDict
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+# Windows GBK 控制台兼容：输出含 ✅/❌/⚠️，必须强制 UTF-8
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        try:
+            _stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
 CROSSREF_API = "https://api.crossref.org/works/{doi}"
 USER_AGENT = "qm_paper_search/0.3.0 (Mavis; DOI validation; +https://github.com/minimax)"
 DEFAULT_TIMEOUT = 15  # 秒

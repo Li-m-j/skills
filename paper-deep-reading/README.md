@@ -90,8 +90,9 @@
 
 ```
 paper-deep-reading/
-├── SKILL.md                              # 技能主文件（YAML frontmatter + 执行指令）
+├── SKILL.md                              # 技能主文件（YAML frontmatter + 执行指令；低频长章节已迁出，主文档留 §编号占位）
 ├── README.md                             # 本说明
+├── CHANGELOG.md                          # 修订记录 + 逐版本变更明细（原 SKILL.md 顶部注释块 + §10）
 ├── scripts/
 │   ├── pdf_extractor.py                  # 编排 + CLI + 向后兼容 re-export
 │   ├── extractors/                       # pdftotext / fitz / pdfplumber 三后端
@@ -102,6 +103,7 @@ paper-deep-reading/
 │   ├── ima_bridge.py                     # IMA 知识库胶水层（可选）
 │   └── README.md                         # 脚本使用说明
 ├── references/
+│   ├── report-modules-spec.md            # 七模块 10 要点逐条规则（原 §4，生成报告前必读）
 │   ├── comp-chem-paper-structure.md      # 论文结构 / 复现细节 / 术语参考表 / 软件许可清单
 │   ├── term-glossary.md                  # 术语主表（必须 100% 沿用）
 │   ├── ima-integration.md                # IMA 联用（可选）

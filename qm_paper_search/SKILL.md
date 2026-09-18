@@ -2,62 +2,15 @@
 name: qm_paper_search
 version: 0.4.1
 description: |
-  化学领域学术文献检索 v0.4.1（统一 skill；原 qm_paper_search_fine v0.2.3 + qm_paper_search_broad v0.2.2 已于 v0.3.0 合并为单 skill）。
-  触发词：文献检索 X（mode 由 skill 内部自动推断）；显式覆盖："精细检索 X" / "粗放检索 X"。
-  精细默认触发：深度调研 / 方法学 / 创新点 / 单篇分析 / 对比 / 复现。
-  粗放默认触发：概览 / 立项 / 综述 / 摸底 / survey / landscape / 全景。
-  精细默认：article-only、10 篇、近 3 年、相关度排序。
-  粗放默认：review-only、15 篇、时间不限、时间+被引排序、含宽召回。
-  强制反幻觉：全部元数据 only from API，缺则 N/A；交付前用 scripts/validate_output.py 做 DOI 级代码校验。
-  检索执行：优先用 scripts/paper_search_client.py（SS/OpenAlex/Crossref 三源合并 + 去重 + Markdown 导出 + --verify 校验）。
-  首次使用请先跑 shared/data/scripts/qm_paper_search_setup.ps1（见 §0 Quickstart）。
-  数据根目录：%USERPROFILE%\.minimax\skills\qm_paper_search_shared\data\
+  化学领域学术文献检索（统一 skill，fine/broad 双模式，mode 由查询关键词自动推断）。
+  触发词："文献检索 X"；显式覆盖："精细检索 X" / "粗放检索 X"。粗放默认触发词：概览 / 立项 / 综述 / 摸底 / survey / landscape / 全景；未命中则默认精细。
+  精细默认：article-only、10 篇、近 3 年、相关度排序；粗放默认：review-only、15 篇、时间不限、含方案 H 宽召回。
+  反幻觉红线：全部元数据 only from API，缺则 N/A；交付前必须用 scripts/validate_output.py 做 DOI 级反查校验。
+  执行：优先运行 scripts/paper_search_client.py（SS/OpenAlex/Crossref 三源合并 + 去重 + Markdown 导出 + --verify）；首次使用先按 §0 Quickstart 配置。
+  不适用：医学/生信/AI 文献检索 → mbai_paper_search；论文 PDF 深度阅读 → paper-deep-reading。
 ---
 
-<!--
-  Modification Log (added 2026-09-12)
-  Format: modified <date>: <phase> — <change summary>
-  Keep entries reverse-chronological (newest on top).
--->
-<!-- modified 2026-09-12: Phase 3.1 — 补上 锐评 处置建议 #1 的真正缺口：新增
-     `shared/data/scripts/paper_search_client.py`（唯一零依赖 Python 检索客户端）：
-     SS/OpenAlex/Crossref 三源检索 → DOI+标题去重合并 → 方案 H 概念过滤 → seen_papers 去重
-     → §6.2 格式 Markdown 导出 → `--verify` 复用 validate_output.py 做 DOI 反查。
-     同时在 §0 Quickstart / §3.2 调用契约 / §12 文件清单 中登记该脚本。
-     顺带修复 validate_output.py 的两个真实缺陷：
-       (1) line 205 f-string 引号错位（`'total_dois]`）导致整文件 SyntaxError；
-       (2) DOI 正则未排除 BibTeX 花括号，抽取 `doi = {10.x/y}` 会得到 `10.x/y}`（404）。
-     新增 §3.2 的"执行主体"二选一说明（脚本优先，Agent 直连为兜底）。 -->
-<!-- modified 2026-09-12: Phase 3 — v0.4.0「文档 ↔ 实现对齐 + 可复用性」修复，闭合 skill锐评.md 的 qm 侧遗留项：
-     - 新增 §0 Quickstart（补 锐评 #5「Onboarding 完全缺失」）。
-     - 新增 §3.2 调用契约（endpoint / 参数 / 字段映射 逐条写死），并在 §3 加"口径澄清"，
-       消除 锐评 #1「文档承诺与代码实现对不上」——明确本 skill 由 Agent 直接发起 HTTP，
-       脚本只做 JSON→MD 转换与 DOI 校验，不再让读者误以为存在 SS 客户端。
-     - 新增 §3.4「为什么不用 Google Scholar + 5 条替代路径」（补 锐评 #3 反向偏执无解释）。
-     - 新增 §4.2 代码化校验（validate_output.py）、§4.3 TLDR 质量警告（补 锐评 #6）。
-     - §5.2 去重策略重写：跨 topic 共享关键词时默认识别合并去重（修 锐评 #4 反用户设计）。
-     - 新增 §7.1 面向用户的错误提示模板（补 锐评 #8 错误处理不面向用户）。
-     - 粗放默认 count 25 → 15（补 锐评 #7 限流劝退）；同步 §2 / §10.6 / README。
-     - §12 文件清单同步实际目录（补 _lib_paths.ps1 / validate_output.py / sample_broad.json）。
-     - §13 版本表补 v0.4.0。 -->
-<!-- modified 2026-09-12: Phase 2.1 — MERGED qm_paper_search_fine v0.2.3 + qm_paper_search_broad v0.2.2
-     into single skill qm_paper_search v0.3.0.
-     - Directory: qm_paper_search_fine/ → qm_paper_search/ (consolidated).
-     - v0.1 archive moved: qm_paper_search/ → qm_paper_search_v0.1_deprecated/ (data preserved).
-     - Trigger unified to "文献检索 X"; mode auto-inferred from query keywords.
-     - Auto-inference regex: /概览|立项|综述|摸底|survey|landscape|全景/i → broad;
-       /深度|方法|创新|对比|复现/ → fine; default fine.
-     - Explicit overrides still work: "精细检索 X" / "粗放检索 X" (backward compat).
-     - topic_id prefix in seen_papers.json UNCHANGED: "fine_*" and "broad_*" coexist
-       and are both recognized for cross-session dedup continuity.
-     - Section count: 15 → 13 (removed standalone "与 broad 的区别" / "继承 fine" sections;
-       placeholder §10 was removed as no longer needed).
-     - qm_paper_search_broad/ now contains only DEPRECATED.md + README.md redirect.
--->
-<!-- modified 2026-09-12: Phase 1 P1 — bumped version 0.2 → 0.2.3 in frontmatter + description;
-     rewrote §15 维护 as a single-layer version table. -->
-<!-- modified 2026-09-12: Phase 1 P0 — inserted §10 placeholder (章节编号兼容性占位)
-     to fix the §9 → §11 numbering gap. (placeholder removed in v0.3.0 merge) -->
+<!-- 历次修订记录（原本文件顶部 HTML Modification Log 注释块）已迁移至 ./CHANGELOG.md -->
 
 # qm_paper_search — 化学领域学术文献检索 v0.4.1
 
@@ -250,24 +203,9 @@ X-Mol                       中文友好 + 国内化学社区（仅跳转，不�
 
 ### 3.4 为什么不用 Google Scholar（及替代路径）— v0.4.0 新增
 
-**三条原因（明确写出，避免"反向偏执"观感）**：
-
-1. **合规**：GS 的 ToS 明确禁止自动化抓取，且没有官方 API；
-2. **稳定**：反爬导致的封禁常常**静默失败**——流程"看起来成功"，但结果为空；
-3. **可复现**：GS 结果与个人会话 / cookie / 地域相关，同一 query 不同人跑出不同结果，与本 skill 的"可复现检索"定位冲突。
-
-**GS 独有能力的替代路径**（避免用户在化学场景被卡住）：
-
-| GS 独有能力 | 本 skill 的替代方式 |
-|---|---|
-| 中文期刊覆盖 | X-Mol 关键词检索；CNKI / 万方按标题人工跳转（**不入结构化字段**） |
-| 作者影响力 / h-index | SS `author.hIndex`、`author.paperCount`；OpenAlex `authorships` + `summary_stats` |
-| 引用图谱 | SS `/references` + `/citations`（一层）；OpenAlex `referenced_works` / `cited_by_api_url` |
-| "被引 N 次" | SS `citationCount`；OpenAlex `cited_by_count` |
-| 全文 PDF 直达 | OpenAlex `open_access.oa_url`；Unpaywall 按 DOI 反查 OA 版本；预印本 ChemRxiv / arXiv（**仅取链接，不镜像、不绕过付费墙**） |
-| 相关文章推荐 | SS `paper/{paperId}/recommendations` 或 `/references` 的首层结果 |
-
-> 结论：GS **不可替代的是它自己的索引**，但上表六类需求都有合规替代。若用户坚持要 GS 结果，明确告知"需手动在浏览器检索，本 skill 不代抓"。
+Google Scholar 无合法公开 API、ToS 禁止自动化抓取、结果随会话/地域变化不可复现，本 skill 一律不代抓。
+六类 GS 常见需求（中文期刊、h-index、引用图谱、被引数、PDF 直达、相关文章推荐）的合规替代路径对照表见
+[references/google-scholar-alternatives.md](references/google-scholar-alternatives.md)。
 
 ## 4. 强制反幻觉规则
 
@@ -517,209 +455,49 @@ v0.2.x 的"跨 topic 默认不去重"在实践中反用户：做过"机器学习
 
 ## 9. 法律约束与合规
 
-### 9.1 数据来源合规
+核心红线速记：
+- 元数据（标题/作者/DOI/摘要/引用数）可存；**付费墙后 PDF 禁存、不批量镜像、不去除来源标识、不绕付费墙抓全文、不转售**。
+- `api_keys.local.json`、`seen_papers.json`、搜索记录只存本机；**严禁分享他人 key、严禁把用户搜索内容上传第三方**。
+- 输出仅作辅助，引用以原文献为准；禁止用于代写、伪造数据、剽窃。
+- 跨境合规：中国《数安法》/《个保法》、GDPR、CFAA/DMCA，以各出版商 ToS 为准。
 
-| 数据源 | 协议 | 使用范围 |
-|---|---|---|
-| **OpenAlex** | CC0（公有领域） | 可自由使用、修改、分发，无需署名（建议注明 "Data from OpenAlex"） |
-| **Crossref** | CC0 | 同上 |
-| **Semantic Scholar** | API 协议 | 注明来源；非商业用途建议遵守 |
-| **X-Mol** | 学术聚合 | 仅用于学术检索，不存原文 |
-| **PubMed** | 公有领域 | 可自由使用 |
-| **arXiv / ChemRxiv** | 各预印本协议 | 引用时保留 license 信息 |
-
-### 9.2 引用规范
-
-- **必须保留**：原始作者、期刊、DOI、出版商信息
-- **必须输出**：4 种引用格式（BibTeX / APA 7 / GB/T 7714 / RIS），按学术规范
-- **严禁**：去除作者署名、期刊信息、DOI
-- **翻译字段**（GB/T 7714 中文版）：由 LLM 拼装，**不作为权威引用**，仅供中文用户参考；以英文原版为准
-
-### 9.3 内容使用边界
-
-**允许**：
-
-- 保存论文元数据（标题、作者、DOI、摘要、引用数、概念标签）
-- 保存 inverted index 还原的 abstract
-- 复制 OpenAlex concepts（CC0）
-- 通过 DOI 链接到出版商原页（仅作跳转，不存 PDF）
-
-**禁止**：
-
-- ❌ 存储付费墙后的 PDF 原文
-- ❌ 批量下载/镜像出版商数据库
-- ❌ 商业转售聚合数据
-- ❌ 去除来源标识
-- ❌ 用于生成假论文、伪造数据
-- ❌ 替代人工阅读原文作为决策唯一依据
-
-### 9.4 隐私与个人信息
-
-- 不存储用户搜索历史到云端
-- `seen_papers.json` 仅存 DOI（公开标识符）
-- `user_prefs.json` 存本地路径，不上传
-- `api_keys.local.json` 存本机，仅 skill 内部使用
-- ❌ 严禁分享他人提供的 API key
-- ❌ 严禁把用户搜索内容上传到第三方
-
-### 9.5 学术道德
-
-- 本 skill 是**辅助工具**，不替代人工阅读
-- 检索结果仅供学术调研，**不作为决策唯一依据**
-- 引用必须以**原文献**为准，本工具输出仅作辅助
-- 严禁用于：代写论文、伪造数据、剽窃、学术不端
-- 严禁绕过付费墙抓取全文
-- 严禁批量爬取造成出版商服务器压力
-
-### 9.6 适用法律
-
-- 本 skill 仅在用户所在司法辖区**合法使用**
-- 涉及跨境学术资源时遵守当地法规：
-  - **中国境内**：遵守《网络安全法》《数据安全法》《个人信息保护法》《科学技术进步法》
-  - **欧盟**：遵守 GDPR
-  - **美国**：遵守 CFAA、DMCA
-- 学术出版商协议以各出版商 ToS 为准
-- 如发现违规使用，立即停止相关功能
+各数据源协议表、引用规范、内容边界细则、适用法律全文见
+[references/legal-compliance.md](references/legal-compliance.md)。
 
 ## 10. API 限制约束
 
-### 10.1 OpenAlex API 规则
+关键约束（执行检索时必须遵守）：
+- OpenAlex：无 key 5 req/s、带 key 50 req/s；必须带 User-Agent + `mailto=` 或 key（polite pool）。
+- 429 → 1s/5s/30s 退避重试 ≤3 次；401/403 → 提示换 key 并回退无 key；5xx/网络错误 → 切兜底源。
+- **粗放模式一次约 20-40 req，必须 sleep 防限流**；两轮粗放检索建议间隔 30s。
+- 调用日志只写本地 `shared/data/api_logs.json`，90 天自动清理。
 
-| 项目 | 限制 |
-|---|---|
-| **限流（带 key）** | 50 req/s |
-| **限流（无 key）** | 5 req/s |
-| **polite pool** | 建议带 `mailto=your@email.com` 或 key 标识 |
-| **User-Agent** | 强烈建议带标识（OpenAlex 用于诊断） |
-| **数据更新** | 每月一次完整更新，每月新增 ~500 万论文 |
-
-**强制行为**：
-
-- ✅ 加 User-Agent：`qm_paper_search_skill/0.4 (paper retrieval)`
-- ✅ 加 key 或 mailto
-- ❌ 禁止并发批量刷（> 10 req/s 持续）
-- ❌ 禁止镜像/转售数据
-- ❌ 禁止用于 LLM 训练
-
-### 10.2 当前 key 使用情况
-
-- key 存于 `%USERPROFILE%\.minimax\skills\qm_paper_search_shared\data\api_keys.local.json`
-- 仅用于本 skill，**不分享**
-- ❌ 不嵌入到代码仓库公开处
-- key 失效时（401/403）：按 §7.1 提示用户提供新 key，并自动回退无 key 模式（5 req/s）
-
-### 10.3 错误码处理
-
-| 状态码 | 含义 | 处理 |
-|---|---|---|
-| 200 | OK | 继续 |
-| 401 | key 无效 | 提示新 key（§7.1）；回退无 key 模式 |
-| 403 | 禁止访问 | 检查 User-Agent / key / IP |
-| 429 | 限流 | backoff 1s → 5s → 30s 后重试；最多 3 次 |
-| 5xx | 服务端错误 | backoff 重试 3 次 → 切换兜底源 |
-| network_error | 网络层失败 | 切换 web_search 兜底 |
-
-### 10.4 调用频率建议
-
-| 场景 | 建议频率 |
-|---|---|
-| 主题检索 | 1-2 req/search（搜索 + 详情） |
-| 引用图谱 | 1-5 req/paper（references + cited by） |
-| 批量检索 | ≤ 10 req/min（避免触发限流） |
-| 持续监控 | 严禁（无合理学术场景） |
-
-### 10.5 调用日志
-
-- 每次 API 调用记录：endpoint / status / latency / date
-- 异常时记录完整错误
-- 日志仅本地（`shared/data/api_logs.json`），**不上传**
-- 用于诊断 API 健康度
-- 90 天后自动清理过期日志
-
-### 10.6 API 健康度监控
-
-- 当 OpenAlex 失败率 > 50% 时：自动切兜底源
-- 当 429 连续 3 次：暂停 5 分钟
-- 当 5xx 连续 5 次：警告用户并切兜底
-
-**粗放模式特别约束**：
-
-- 15 篇 × 完整元数据 ≈ 20-40 req/search，**必须 sleep 防限流**
-- 引用图谱默认开，1 篇拉 5-10 req，**最多约 150 req/search**
-- 建议每次粗放检索后 sleep 30s 再做下一轮
-- SS API 共享 IP 100 req/min 限流，无 key 也能跑（带 key 提升）
+完整限流表、错误码处理、频率建议、健康度监控阈值见 [references/api-limits.md](references/api-limits.md)。
 
 ## 11. API key 管理
 
-### 11.1 设计原则
+原则：**团队共享代码、key 只存各自本机**。读取顺序 `api_keys.local.json` → 环境变量 → 无 key。
+- 首次配置：`qm_paper_search_setup.ps1`；日常管理：`Set-ApiKey.ps1 -List|-Key|-Validate|-Remove|-EnvVar`。
+- ❌ 严禁把 key 提交 git、在聊天/邮件/截图分享；key 失效（401/403）立即更新。
+- 出版商屏蔽 abstract → 标 `N/A（出版商屏蔽，到 DOI 原页拉）`，**不用 AI 总结兜底**。
 
-- **团队共享代码 + 个人本地 key** —— 代码 commit 到 git，key 不共享
-- 每个成员独立管理自己的 key
-- 支持后续 key 变更（失效、续期、轮换）
-
-### 11.2 读取顺序
-
-1. `data/api_keys.local.json`（个人本地，最优先）
-2. 环境变量 `OPENALEX_API_KEY` / `SEMANTIC_SCHOLAR_API_KEY`（User 级别）
-3. 不使用 key（限流低但能跑）
-
-`api_keys.template.json` 是占位符，**不会被读**。
-
-### 11.3 首次配置
-
-```powershell
-cd $env:USERPROFILE\.minimax\skills\qm_paper_search_shared\data\scripts
-.\qm_paper_search_setup.ps1
-# 按提示输入 OpenAlex / SS key（或留空跳过）
-```
-
-### 11.4 后续管理
-
-```powershell
-# 查看当前 key 状态
-.\Set-ApiKey.ps1 -List
-
-# 更新 OpenAlex key
-.\Set-ApiKey.ps1 -Provider openalex -Key "NEW_KEY"
-
-# 改用环境变量
-.\Set-ApiKey.ps1 -Provider openalex -EnvVar
-
-# 删除 key
-.\Set-ApiKey.ps1 -Provider openalex -Remove
-
-# 验证 key 有效性
-.\Set-ApiKey.ps1 -Validate
-```
-
-### 11.5 安全约束
-
-- ❌ 不要把 `api_keys.local.json` 加入 git
-- ❌ 不要在聊天/邮件/截图中分享 key
-- ✅ key 失效时（401/403）立即更新
-- ✅ 详细文档见 `data/README_API_KEYS.md`
-
-### 11.6 输出规范
-
-- 出版商屏蔽 abstract → 标 `N/A（出版商屏蔽，到 DOI 原页拉）`，**不用 AI 总结兜底**
-- 标记为 `🔒 待人工处理`，交付用户
-- 不在 .md 中编造 abstract 内容
-
-**粗放模式特别约束**：
-
-- 粗放模式更频繁使用 SS API，可能需要 Semantic Scholar key
-- OpenAlex key 申请：https://openalex.org/users/sign_up
-- Semantic Scholar key 申请：https://www.semanticscholar.org/product/api
-- 详细管理流程见 `data/README_API_KEYS.md`
+完整命令示例与 key 申请入口见
+[references/api-key-management.md](references/api-key-management.md)。
 
 ## 12. 文件清单
 
 ```
 qm_paper_search/
-├── SKILL.md          (本文件，v0.4.0)
+├── SKILL.md          (本文件，v0.4.1)
+├── CHANGELOG.md      (历次修订记录，原本文件顶部 HTML 注释块)
 ├── README.md         (用户视角的触发/参数/FAQ)
-└── assets/
-    └── eval-checklist.md   (检索评测：gold query 集 + DOI 校验阈值)
+├── assets/
+│   └── eval-checklist.md   (检索评测：gold query 集 + DOI 校验阈值)
+└── references/       (低频长章节，按需加载)
+    ├── google-scholar-alternatives.md  (§3.4 全文)
+    ├── legal-compliance.md             (§9 全文)
+    ├── api-limits.md                   (§10 全文)
+    └── api-key-management.md           (§11 全文)
 
 qm_paper_search_shared/data/
 ├── api_keys.template.json     (团队共享，commit)

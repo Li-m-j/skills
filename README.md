@@ -25,7 +25,7 @@ paper-skills/
 │
 ├── paper-deep-reading/                 ← 计算化学论文深度阅读报告（v0.4）
 │
-└── 历史归档（DEPRECATED，仅作重定向与回溯，不参与加载）
+└── 历史归档（DEPRECATED；SKILL.md 已改名为 SKILL.md.disabled，确认不参与加载）
     ├── qm_paper_search_broad/
     ├── qm_paper_search_v0.1_deprecated/
     ├── mbai_paper_search_fine/
@@ -199,7 +199,7 @@ pip install pymupdf pdfplumber
 | `paper-deep-reading` | v0.4 | 2026-09-12 | paper_type 7 类枚举；候选图片池 + 选取理由；OCR 兜底；作者/致谢/SI 溯源；字数自适应 |
 | 历史归档 | — | 2026-09-08 ~ 09-09 | `*_broad` / `*_fine` / `v0.1_deprecated`，仅重定向与回溯 |
 
-各 skill 目录内的 `SKILL.md §13 维护` / `README.md` 有完整逐版本变更记录。
+完整逐版本变更记录见各 skill 目录的 `CHANGELOG.md`（2026-09-18 起：原 SKILL.md 顶部 HTML 修订注释已迁出至此；paper-deep-reading 的原 §10 明细一并迁入）。
 
 ---
 

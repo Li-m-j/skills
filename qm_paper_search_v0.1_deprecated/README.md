@@ -1,7 +1,8 @@
 # qm_paper_search — README [DEPRECATED]
 
+> **2026-09-18**：本目录内的 `SKILL.md` 已改名为 `SKILL.md.disabled`，skill 加载器不再扫描本目录（此前旧版触发词会与新版 skill 冲突、覆盖默认参数）。
 > ⚠️ **本 skill 已弃用**。v0.1 仅作历史归档。
-> 请使用 `qm_paper_search_fine` 或 `qm_paper_search_broad`。
+> 请使用 `qm_paper_search/`（fine + broad 已合并为单 skill，mode 自动推断）。
 
 ---
 
@@ -10,9 +11,7 @@
 - **弃用版本**：v0.1
 - **弃用日期**：2026-09-08
 - **原因**：v0.2 拆分成精细 + 粗放两个 skill，主源改为 Semantic Scholar API，加入强制反幻觉规则
-- **替代**：
-  - `qm_paper_search_fine` — 精细搜索
-  - `qm_paper_search_broad` — 粗放搜索
+- **替代**：`qm_paper_search/`（当前单 skill；v0.2 的 fine/broad 双 skill 已于 v0.3.0 合并）
 
 ## 历史摘要
 

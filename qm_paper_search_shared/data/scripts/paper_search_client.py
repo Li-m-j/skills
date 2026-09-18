@@ -223,7 +223,7 @@ def blank_record() -> Dict[str, Any]:
         "volume": "", "issue": "", "page": "", "doi": "", "abstract": "",
         "keywords": [], "tldr": "", "citation_count": None, "pub_types": [],
         "source": "", "sources": [], "oa_url": "", "is_preprint": False,
-        "preprint_server": "", "concepts": [], "pmid": "",
+        "preprint_server": "", "concepts": [], "pmid": "", "kw_note": "",
     }
 
 
@@ -288,7 +288,8 @@ def parse_openalex(item: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     r["volume"] = str(biblio.get("volume") or "")
     r["issue"] = str(biblio.get("issue") or "")
     first, last = biblio.get("first_page"), biblio.get("last_page")
-    r["page"] = f"{first}-{last}" if first and last else (first or "")
+    r["page"] = (f"{first}-{last}" if first and last and str(first) != str(last)
+                 else str(first or last or ""))
     r["doi"] = norm_doi(item.get("doi"))
     r["authors"] = [
         ((a.get("author") or {}).get("display_name") or "").strip()
@@ -299,6 +300,8 @@ def parse_openalex(item: Dict[str, Any]) -> Optional[Dict[str, Any]]:
                 for c in (item.get("concepts") or []) if c.get("display_name")]
     r["concepts"] = concepts[:12]
     r["keywords"] = r["concepts"][:8]
+    if r["keywords"]:
+        r["kw_note"] = "概念标签，来自 OpenAlex concepts"
     r["citation_count"] = item.get("cited_by_count")
     oa = item.get("open_access") or {}
     if isinstance(oa, dict):
@@ -503,6 +506,8 @@ def merge_records(records: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
             base["authors"] = rec["authors"]
         if not base.get("keywords") and rec.get("keywords"):
             base["keywords"] = rec["keywords"]
+            if rec.get("kw_note") and not base.get("kw_note"):
+                base["kw_note"] = rec["kw_note"]
         if base.get("citation_count") is None and rec.get("citation_count") is not None:
             base["citation_count"] = rec["citation_count"]
         base["pub_types"] = sorted(set(base.get("pub_types") or []) | set(rec.get("pub_types") or []))
@@ -797,7 +802,7 @@ def to_gbt7714(rec: Dict[str, Any]) -> str:
         auth = ", ".join(authors[:3]) + ", et al"
     else:
         auth = ", ".join(authors)
-    parts = [f"{auth}. {rec.get('title') or NA}[J]"]
+    parts = [f"{auth}. {rec.get('title') or NA}[J]."]
     venue = rec.get("venue") or NA
     year = rec.get("year") or NA
     loc = f"{venue}, {year}"
@@ -918,7 +923,8 @@ def render_markdown(
         lines.append(f"- **DOI**：{f'[{doi}](https://doi.org/{doi})' if doi else NA}")
         lines.append(f"- **卷/期/页**：{_vol_issue_page(rec)}")
         kws = rec.get("keywords") or []
-        lines.append(f"- **关键词**：{', '.join(kws) if kws else NA}")
+        kw_label = f"关键词（{rec['kw_note']}）" if rec.get("kw_note") else "关键词"
+        lines.append(f"- **{kw_label}**：{', '.join(kws) if kws else NA}")
         lines.append(f"- **摘要原文**：{_abstract_cell(rec)}")
         lines.append(f"- **TLDR**（AI 总结）：{rec.get('tldr') or NA}")
         marks = []
@@ -1075,6 +1081,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     srcs = {s.strip() for s in args.sources.split(",") if s.strip()}
 
     # 1) 主检索：SS
+    def _why(e: Optional[str]) -> str:
+        return e or "连接正常但 0 命中（OpenAlex/SS 全文检索仅支持英文，中文查询请改用英文关键词）"
+
     if "ss" in srcs:
         got, err = search_semanticscholar(
             query, max(count * 2, 20), years_lo, years_hi, keys.get("semantic_scholar"), logs)
@@ -1082,8 +1091,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             records.extend(got)
             sources_used.append("Semantic Scholar")
         else:
-            notes.append(f"{warn} Semantic Scholar 不可用（{err}），已跳过该源。")
-            print(f"{warn} Semantic Scholar 不可用：{err}；已切下游源。", file=sys.stderr)
+            notes.append(f"{warn} Semantic Scholar 不可用（{_why(err)}），已跳过该源。")
+            print(f"{warn} Semantic Scholar 不可用：{_why(err)}；已切下游源。", file=sys.stderr)
 
     # 2) 覆盖兜底：OpenAlex
     if "openalex" in srcs:
@@ -1094,8 +1103,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             records.extend(got)
             sources_used.append("OpenAlex")
         else:
-            notes.append(f"{warn} OpenAlex 不可用（{err}），已跳过该源。")
-            print(f"{warn} OpenAlex 不可用：{err}；已切下游源。", file=sys.stderr)
+            notes.append(f"{warn} OpenAlex 不可用（{_why(err)}），已跳过该源。")
+            print(f"{warn} OpenAlex 不可用：{_why(err)}；已切下游源。", file=sys.stderr)
 
     # 3) 元数据权威：Crossref
     if "crossref" in srcs:
@@ -1104,7 +1113,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             records.extend(got)
             sources_used.append("Crossref")
         else:
-            notes.append(f"{warn} Crossref 不可用（{err}），已跳过该源。")
+            notes.append(f"{warn} Crossref 不可用（{_why(err)}），已跳过该源。")
 
     if not records:
         print("❌ 全部数据源失败：", file=sys.stderr)

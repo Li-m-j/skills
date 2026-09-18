@@ -1,4 +1,4 @@
-# mbai_openalex_to_md.ps1 (v0.1)
+﻿# mbai_openalex_to_md.ps1 (v0.1)
 # 将 OpenAlex API 返回的 JSON 转换为 医学/生信/AI 文献检索 .md 名录。
 # 同源孪生：qm_openalex_to_md.ps1 (化学主题)。本版本扩展：
 #   - 期刊白名单改为 医学/生信/AI 顶刊
@@ -257,14 +257,14 @@ for ($i = 0; $i -lt $results.Count; $i++) {
     [void]$sb.AppendLine('<details>')
     [void]$sb.AppendLine('<summary>BibTeX</summary>')
     [void]$sb.AppendLine("")
-    [void]$sb.AppendLine("```bibtex")
+    [void]$sb.AppendLine('```bibtex')
     [void]$sb.AppendLine("@article{$firstAuthorSurname$year,")
     [void]$sb.AppendLine("  title  = {$title},")
     [void]$sb.AppendLine("  journal= {$venue},")
     [void]$sb.AppendLine("  year   = {$year},")
     [void]$sb.AppendLine("  doi    = {$doi}")
     [void]$sb.AppendLine("}")
-    [void]$sb.AppendLine("```")
+    [void]$sb.AppendLine('```')
     [void]$sb.AppendLine('</details>')
     [void]$sb.AppendLine("")
     [void]$sb.AppendLine("---")

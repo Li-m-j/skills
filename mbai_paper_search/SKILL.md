@@ -2,50 +2,17 @@
 name: mbai_paper_search
 version: 0.4.0
 description: |
-  医学 / 生物信息学 / 人工智能 学术文献检索 v0.4.0（统一 skill；原 mbai_paper_search_fine v0.2 + mbai_paper_search_broad v0.2 已合并为单 skill）。
-  触发词：文献检索 X（mode 由 skill 内部自动推断）；显式覆盖："精细检索 X" / "粗放检索 X"。
-  精细默认触发：深度调研 / 机制 / 通路 / 算法 / 方法学 / 对比 / 复现。
-  粗放默认触发：概览 / 立项 / 综述 / 摸底 / survey / landscape / 全景 / 指南。
-  精细默认：article-only（含 Letter / Case Report）、10 篇、近 3 年、相关度排序。
-  粗放默认：review-only（系统综述 / Meta / 指南）、15 篇、时间不限、时间+被引排序、含宽召回。
-  数据源主链：OpenAlex / PubMed E-utilities（生物医学权威）→ Europe PMC（OA+预印本）→ Semantic Scholar → Crossref；预印本并行通道 bioRxiv / medRxiv / arXiv。
-  医学扩展字段：MeSH 主题词、证据等级（RCT / Meta / Cohort / Guideline）、临床试验注册号（NCT/ChiCTR）。
-  强制反幻觉：全部元数据 only from API，缺则 N/A；交付前用 scripts/validate_output.py 做 DOI + PMID 级代码校验。
-  检索执行：优先用 scripts/paper_search_client.py（五源合并 + 去重 + Markdown 导出 + --verify 校验）。
-  首次使用请先跑 shared/data/scripts/mbai_paper_search_setup.ps1（见 §0 Quickstart）。
-  合规红线：不替代临床判断；不输出用药/诊疗建议；预印本必须显式标注。
-  数据根目录：%USERPROFILE%\.minimax\skills\mbai_paper_search_shared\data\
+  医学 / 生物信息学 / AI 学术文献检索（统一 skill，fine/broad 双模式，mode 由查询关键词自动推断；qm_paper_search 化学版的同源孪生）。
+  触发词："文献检索 X"；显式覆盖："精细检索 X" / "粗放检索 X"。粗放默认触发词：概览 / 立项 / 综述 / 摸底 / survey / landscape / 全景 / 指南；未命中则默认精细。
+  精细默认：article-only（含 Letter/Case Report）、10 篇、近 3 年；粗放默认：review-only（系统综述/Meta/指南）、15 篇、时间不限、含方案 H 宽召回。
+  主链：OpenAlex / PubMed E-utilities → Europe PMC → Semantic Scholar → Crossref；预印本并行 bioRxiv/medRxiv/arXiv；扩展字段：MeSH / 证据等级 / 临床试验注册号。
+  反幻觉红线：元数据 only from API，缺则 N/A；交付前必须用 scripts/validate_output.py 做 DOI + PMID 双反查校验。
+  医学红线：不替代临床判断、不输出用药/诊疗建议、预印本必须显式标注、PII 硬拦截。
+  执行：优先运行 scripts/paper_search_client.py（五源合并 + 去重 + Markdown 导出 + --verify）；首次使用先按 §0 Quickstart 配置。
+  不适用：化学文献检索 → qm_paper_search；论文 PDF 深度阅读 → paper-deep-reading。
 ---
 
-<!--
-  Modification Log
-  Format: modified <date>: <phase> — <change summary>
-  Keep entries reverse-chronological (newest on top).
--->
-<!-- modified 2026-09-12: v0.4.0 — 与 qm_paper_search v0.4.x 对齐的「合并 + 可复用性」升级：
-     - MERGED mbai_paper_search_fine v0.2 + mbai_paper_search_broad v0.2 → 单 skill
-       `mbai_paper_search` v0.4.0；统一触发词"文献检索 X" + mode 自动推断。
-       目录：mbai_paper_search_fine/ → mbai_paper_search/；mbai_paper_search_broad/ 标 DEPRECATED。
-     - 新增 §0 Quickstart（补 onboarding 缺口）。
-     - 新增 §3.2 调用契约（OpenAlex / PubMed E-utilities / Europe PMC / SS / Crossref 的
-       endpoint + 参数 + 字段映射逐条写死），并说明"脚本优先、Agent 直连兜底"。
-     - 新增 §3.4「为什么不用 Google Scholar + 6 条替代路径」（医学场景版）。
-     - 新增 §4.2 代码化校验：validate_output.py（DOI + PMID 双反查；PMID 反查为医学专属扩展）。
-     - 新增 §4.3 TLDR 质量警告。
-     - §5.2 去重策略重写：跨 topic 共享关键词时默认合并去重；seen_papers 同时维护 seen_dois + seen_pmids。
-     - 新增 §7.1 面向用户的错误提示模板。
-     - 粗放默认 count 25 → 15。
-     - 新增 §6.1 统一输出约定（与 qm / paper-deep-reading 同一套）。
-     - 医学红线保留并强化：PII 脱敏、预印本明示、不输出诊疗建议、人类遗传资源条例。
-     - 新增 scripts/paper_search_client.py（五源检索客户端）与 scripts/validate_output.py。 -->
-<!-- modified 2026-09-09: v0.2.0（fine/broad 共享）— 主源探活 / 检索三段式 / 本地化日期与类型过滤 /
-     SS tldr / efetch 完整作者 / 引用数 / stdout 告警 + api_logs / seen_papers 自动落盘 /
-     PII 脱敏 / -Count 参数 / UPDATE_NOTES 增量；新增 mbai_search_and_export.ps1（33 KB 一站式入口）。
-     ⚠️ 注意：`mbai_search_and_export.ps1` 的**检索结果为作者列表可用性依赖 PubMed/OpenAlex 直连**，
-     不属于反幻觉校验层；交付前校验请用 scripts/validate_output.py。 -->
-<!-- modified 2026-09-08: v0.1.0 — 从 qm_paper_search_fine / broad 切换主题到医学/生信/AI；
-     扩展数据源（PubMed / Europe PMC / 预印本）；扩展字段（MeSH / 临床试验注册号 / 证据等级）；
-     扩展合规约束（医学临床道德 / HIPAA / 人类遗传资源条例）。 -->
+<!-- 历次修订记录（原本文件顶部 HTML Modification Log 注释块）已迁移至 ./CHANGELOG.md -->
 
 # mbai_paper_search — 医学 / 生物信息学 / AI 学术文献检索 v0.4.0
 
@@ -149,7 +116,7 @@ python validate_output.py "<刚生成的 .md 路径>" --pretty     # 校验率 <
 | `abstract_source` | openalex | openalex | openalex / pubmed / europe_pmc / semantic_scholar / crossref | 摘要主源 |
 | `keywords_required` | true | true | true / false | 是否必须返回关键词（含 MeSH） |
 | `tldr` | optional | optional | required / optional / off | TLDR 开关（质量警告见 §4.3） |
-| `include_preprint` | optional | off | required / optional / off | 是否纳入 bioRxiv / medRxiv / arXiv 预印本 |
+| `include_preprint` | on | on | on（当前实现无排除开关） | bioRxiv / medRxiv / arXiv / Europe PMC PPR 恒纳入结果并强制显式标 `[Preprint]`（红线见 §9.7）；CLI `--include-preprint` 仅作显式声明 |
 | `mesh_required` | optional | optional | required / optional / off | 是否优先返回 PubMed MeSH 主题词 |
 | `evidence_level` | optional | optional | **RCT优先 / Meta优先 / 队列优先 / 不限** | 临床证据等级偏好（医学专属） |
 | `prefer_journal` | — | auto | auto / Nature Reviews / Cochrane / Annual Review / Lancet / NEJM | 综述来源偏好（粗放专属） |
@@ -239,19 +206,9 @@ python paper_search_client.py -q "medical large language model" --mode broad `
 
 ### 3.4 为什么不用 Google Scholar（及替代路径）
 
-1. **合规**：GS 的 ToS 明确禁止自动化抓取，且无官方 API；
-2. **稳定**：反爬导致的封禁常**静默失败**（流程看似成功、结果为空）；
-3. **可复现**：结果与个人会话 / cookie / 地域相关，同一 query 不同人跑出不同结果。
-
-| GS 独有能力 | 本 skill 的替代方式 |
-|---|---|
-| 中文医学期刊覆盖 | 万方 / CNKI / 中华医学期刊网人工跳转（**不入结构化字段**）；PubMed 亦收录部分中文刊 |
-| 作者 h-index / 影响力 | SS `author.hIndex`；OpenAlex `authorships` + `summary_stats` |
-| 引用图谱 | SS `/references` + `/citations`；OpenAlex `referenced_works` / `cited_by_api_url` |
-| "被引 N 次" | SS `citationCount`；OpenAlex `cited_by_count`；Europe PMC `citedByCount` |
-| 全文 PDF 直达 | OpenAlex `open_access.oa_url`；Europe PMC `isOpenAccess=Y` → PMC 全文；Unpaywall 按 DOI 反查 OA 版本 |
-| 临床证据等级 | **PubMed `PublicationType`**（GS 没有这个维度，本 skill 更强） |
-| 相关文章推荐 | SS `paper/{paperId}/recommendations`；Europe PMC `cited-by` / `references` |
+GS 无官方 API、ToS 禁止自动化抓取、结果随会话/地域变化不可复现，本 skill 一律不代抓。
+七类 GS 常见需求（中文医学期刊、h-index、引用图谱、被引数、PDF 直达、证据等级、相关推荐）的
+合规替代路径对照表见 [references/google-scholar-alternatives.md](references/google-scholar-alternatives.md)。
 
 ### 3.5 综述类型识别（PubMed Publication Type 优先）
 
@@ -488,39 +445,10 @@ else:
 
 ## 9. 法律约束与合规（医学领域扩展）
 
-### 9.1 数据来源合规
-
-| 数据源 | 协议 | 使用范围 |
-|---|---|---|
-| **OpenAlex** | CC0（公有领域） | 可自由使用、修改、分发（建议注明 "Data from OpenAlex"） |
-| **Crossref** | CC0 | 同上 |
-| **Semantic Scholar** | API 协议 | 注明来源；非商业用途建议遵守 |
-| **PubMed / MEDLINE** | 公有领域（NIH/NCBI） | 可自由使用；建议注明 "Data from PubMed" |
-| **Europe PMC** | 开放获取（CC BY / CC BY-NC） | 标注 license；不可商业转售 |
-| **bioRxiv / medRxiv** | 各预印本协议 | 保留 license；**明示为预印本** |
-| **arXiv** | 永久 CC | 引用保留 license |
-
-### 9.2 引用规范
-
-- **必须保留**：原始作者、期刊、DOI、出版商信息
-- **必须输出**：4 种引用格式（BibTeX / APA 7 / GB/T 7714 / RIS）
-- **严禁**：去除作者署名、期刊信息、DOI、MeSH 主题词
-- **临床论文额外要求**：保留临床试验注册号、伦理批件号（如原文披露）、出版商限制声明
-- **翻译字段**（GB/T 7714 中文版）：由 LLM 拼装，**不作为权威引用**；以英文原版为准
-
-### 9.3 内容使用边界
-
-**允许**：保存论文元数据（标题 / 作者 / DOI / PMID / 摘要 / MeSH / 引用数 / 概念标签）；保存 PubMed / Europe PMC 还原的 abstract；通过 DOI 跳转出版商原页；通过 CT.gov 跳转试验详情（**仅跳转，不存 PDF**）。
-
-**禁止**：
-
-- ❌ 存储付费墙后的 PDF 原文
-- ❌ 批量下载 / 镜像出版商数据库
-- ❌ 商业转售聚合数据
-- ❌ 去除来源标识（OpenAlex / PubMed / Europe PMC / bioRxiv / arXiv）
-- ❌ 用于生成假论文、伪造数据、**伪造临床试验**
-- ❌ 替代人工阅读原文作为**临床决策唯一依据**（医疗高风险：误诊 / 误治责任由使用者承担）
-- ❌ 替代 Cochrane / UpToDate / 临床指南作为循证医学唯一来源
+> §9.1 数据来源协议 / §9.2 引用规范 / §9.3 内容使用边界 / §9.5 学术与临床道德 / §9.6 适用法律
+> 全文见 [references/legal-compliance.md](references/legal-compliance.md)。
+> 速记：元数据可存、付费墙 PDF 禁存、不镜像不转售不去来源标识；引用必须以原文献为准，不替代人工阅读。
+> §9.4 隐私与 §9.7 医学红线为执行时必守约束，**原文保留在下方**。
 
 ### 9.4 隐私与个人信息
 
@@ -533,24 +461,6 @@ else:
 - ⚠️ **医学 query 可能含疾病名 / 基因名 / 患者相关信息** → 不写入公共 issue / 截图
 - ⚠️ **PII 硬拦截**：查询串含 13-18 位连续数字（疑似患者 ID / 身份证号 / 卡号）时**拒绝执行**并要求脱敏
 
-### 9.5 学术与临床道德
-
-- 本 skill 是**辅助工具**，不替代人工阅读、**不替代临床判断**
-- 检索结果仅供学术调研，**不作为临床决策唯一依据**
-- 引用必须以**原文献**为准
-- 严禁用于：代写论文、伪造数据、剽窃、学术不端
-- 严禁绕过付费墙抓取全文；严禁批量爬取造成出版商服务器压力
-- 涉及临床决策的论文必须经由**专业医师**审阅原文 + 当前临床指南
-
-### 9.6 适用法律
-
-- 本 skill 仅在用户所在司法辖区**合法使用**
-- **中国境内**：遵守《网络安全法》《数据安全法》《个人信息保护法》《科学技术进步法》《人类遗传资源管理条例》（⚠️ **人类遗传资源相关数据出境须申报**）
-- **欧盟**：遵守 GDPR（医学数据 / 基因数据属敏感个人信息）
-- **美国**：遵守 CFAA、DMCA、HIPAA（不主动检索 / 存储受 HIPAA 保护的患者数据）
-- 学术出版商协议以各出版商 ToS 为准
-- 如发现违规使用，立即停止相关功能
-
 ### 9.7 医学领域特别约束（红线）
 
 - **预印本明示**：bioRxiv / medRxiv / arXiv **未经同行评审**，必须在条目中标 `[Preprint]`，且**不得**作为临床结论依据
@@ -562,113 +472,37 @@ else:
 
 ## 10. API 限制约束
 
-### 10.1 各源 API 规则
+关键约束（执行检索时必须遵守）：
+- PubMed E-utilities 无 key **3 req/s**（URL 必带 `email` + `tool`）；OpenAlex 无 key 5 req/s；SS 无 key 共享 IP 100 req/min（易 429，脚本自动跳过该源）。
+- 429 → 1s/5s/30s 退避重试 ≤3 次；某源失败率 >50% → 沿 OpenAlex→PubMed→Europe PMC 链自动切兜底；429 连续 3 次暂停 5 分钟。
+- **粗放模式一次约 30-50 req，必须 sleep 防限流**；两轮粗放检索间隔建议 30s。
+- 调用日志仅本地 `data/api_logs.json`（≤500 条 / 90 天清理），不上传。
 
-| API | 限流（带 key） | 限流（无 key） | 备注 |
-|---|---|---|---|
-| **OpenAlex** | 50 req/s | 5 req/s | polite pool 加 `mailto` |
-| **PubMed E-utilities** | 10 req/s（NCBI key） | **3 req/s** | URL 必须带 `email` & `tool=mbai_paper_search` |
-| **Europe PMC** | 礼貌标识 | 无硬限流 | URL 带 `email=` |
-| **Semantic Scholar** | 100 req/s（key） | 共享 IP 100 req/min | 无 key 时易 429（脚本会自动跳过该源） |
-| **Crossref** | 礼貌池 | 50 req/s（共享） | 建议加 `mailto` |
-| **bioRxiv / medRxiv** | 公开 | 公开 | 月度更新 |
-| **arXiv** | 公开 | 公开 | 建议加 `mailto` |
-
-**强制行为**：✅ 加 User-Agent `mbai_paper_search_skill/0.4`；✅ 加 `mailto` 或 key；❌ 禁止 >10 req/s 持续刷；❌ 禁止镜像 / 转售；❌ 禁止用于 LLM 训练。
-
-### 10.2 主源健康度与自动切换
-
-1. **探活**：OpenAlex `per_page=1` 无 filter，`meta.count > 0` 视为健康；PubMed `einfo` 200 视为健康
-2. **自动切换**：OpenAlex 异常 → PubMed；PubMed 异常 → Europe PMC（§3.1 兜底链）
-3. **实时告警**：stdout 输出 `⚠️ OpenAlex 不可用，已切到 PubMed`
-4. **日志与失败率**：每次调用（含探活）写入 `data/api_logs.json`，用于统计各源失败率
-5. **阈值**：某源失败率 > 50% → 自动切兜底；429 连续 3 次 → 暂停 5 分钟；5xx 连续 5 次 → 警告并切兜底
-
-### 10.3 错误码处理
-
-| 状态码 | 含义 | 处理 |
-|---|---|---|
-| 200 | OK | 继续 |
-| 401 | key 无效 | 按 §7.1 提示新 key；回退无 key 模式 |
-| 403 | 禁止访问 | 检查 User-Agent / key / IP |
-| 429 | 限流 | backoff 1s → 5s → 30s；最多 3 次 |
-| 5xx | 服务端错误 | backoff 重试 3 次 → 切换兜底源 |
-| network_error | 网络层失败 | 切换兜底源；全失败走 §7.1 |
-
-### 10.4 调用频率建议
-
-| 场景 | 建议频率 |
-|---|---|
-| 主题检索 | 2-4 req/search（esearch + efetch + OpenAlex + 引用图谱） |
-| 引用图谱 | 1-5 req/paper |
-| 批量检索 | ≤ 10 req/min（避免触发 PubMed 3 req/s 限制） |
-| 持续监控 | 严禁（无合理学术场景） |
-
-**粗放模式特别约束**：
-
-- 15 篇 × 完整元数据 ≈ 30-50 req/search，**必须 sleep 防限流**
-- 引用图谱默认开，1 篇 5-10 req，**最多约 150 req/search**
-- 建议每次粗放检索后 sleep 30s 再做下一轮
-
-### 10.5 调用日志
-
-每次 API 调用记录 `endpoint / status / latency / date`；异常记录完整错误；日志仅本地（`data/api_logs.json`），**不上传**；最多保留 500 条 / 90 天清理。
+各源限流表、探活与自动切换规则、错误码处理、频率建议全文见 [references/api-limits.md](references/api-limits.md)。
 
 ## 11. API key 管理
 
-### 11.1 设计原则
+原则：**团队共享代码、key 只存各自本机**。读取顺序 `api_keys.local.json` → 环境变量（OPENALEX / SEMANTIC_SCHOLAR / NCBI）→ 无 key。
+- 首次配置：`mbai_paper_search_setup.ps1`；日常管理：`Set-ApiKey.ps1 -List|-Key|-EnvVar|-Remove|-Validate`。
+- ❌ 严禁把 `api_keys.local.json` 提交 git、在聊天/邮件/截图分享 key；key 失效（401/403）立即更新。
+- 出版商屏蔽 abstract → 标 `N/A（出版商屏蔽，到 DOI 原页拉）`，**不用 AI 总结兜底**；预印本缺 abstract 保留链接让用户自取。
 
-- **团队共享代码 + 个人本地 key** —— 代码 commit，key 不共享
-- 每个成员独立管理自己的 key；支持轮换（失效 / 续期 / 更换）
-
-### 11.2 读取顺序
-
-1. `data/api_keys.local.json`（个人本地，最优先）
-2. 环境变量 `OPENALEX_API_KEY` / `SEMANTIC_SCHOLAR_API_KEY` / `NCBI_API_KEY`
-3. 不使用 key（限流低但能跑）
-
-`api_keys.template.json` 是占位符，**不会被读**。
-
-### 11.3 首次配置
-
-```powershell
-cd $env:USERPROFILE\.minimax\skills\mbai_paper_search_shared\data\scripts
-.\mbai_paper_search_setup.ps1     # OpenAlex / SS / NCBI key + Europe PMC email（可留空）
-```
-
-### 11.4 后续管理
-
-```powershell
-.\Set-ApiKey.ps1 -List                                    # 查看状态
-.\Set-ApiKey.ps1 -Provider openalex -Key "NEW_KEY"        # 更新
-.\Set-ApiKey.ps1 -Provider ncbi -EnvVar                   # 改用环境变量
-.\Set-ApiKey.ps1 -Provider europe_pmc -Remove             # 删除
-.\Set-ApiKey.ps1 -Validate                                # 验证有效性
-```
-
-### 11.5 安全约束
-
-- ❌ 不要把 `api_keys.local.json` 加入 git
-- ❌ 不要在聊天 / 邮件 / 截图中分享 key
-- ✅ key 失效（401/403）立即更新
-- ✅ 详细文档见 `data/README_API_KEYS.md`
-
-### 11.6 输出规范
-
-- 出版商屏蔽 abstract → 标 `N/A（出版商屏蔽，到 DOI 原页拉）`，**不用 AI 总结兜底**
-- 预处理标记为 `🔒 待人工处理` 后交付
-- 预印本 abstract 缺失 → 保留预印本链接，让用户自取
-- 综述层级未达系统综述标准 → 标 `Narrative Review`，与 Systematic Review 区分
-- 临床指南无证据等级 → 标 `证据等级：未披露`，提醒查原指南
+完整命令示例见 [references/api-key-management.md](references/api-key-management.md)。
 
 ## 12. 文件清单
 
 ```
 mbai_paper_search/
 ├── SKILL.md          (本文件，v0.4.0)
+├── CHANGELOG.md      (历次修订记录，原本文件顶部 HTML 注释块)
 ├── README.md         (用户视角的触发/参数/FAQ)
-└── assets/
-    └── eval-checklist.md   (检索评测：gold query 集 + DOI/PMID 校验阈值)
+├── assets/
+│   └── eval-checklist.md   (检索评测：gold query 集 + DOI/PMID 校验阈值)
+└── references/       (低频长章节，按需加载)
+    ├── google-scholar-alternatives.md  (§3.4 全文)
+    ├── legal-compliance.md             (§9 全文；§9.4/§9.7 红线同时保留在主文档)
+    ├── api-limits.md                   (§10 全文)
+    └── api-key-management.md           (§11 全文)
 
 mbai_paper_search_shared/
 ├── README.md

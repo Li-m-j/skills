@@ -1,5 +1,8 @@
 # ⚠️ DEPRECATED · 此目录已重定向
 
+> **2026-09-18**：本目录内的 `SKILL.md` 已改名为 `SKILL.md.disabled`，skill 加载器不再扫描本目录（此前旧版触发词会与新版 skill 冲突、覆盖默认参数）。
+
+
 > **状态**：`mbai_paper_search_fine` v0.2 已于 2026-09-12 合并入单 skill。
 > **新位置**：`mbai_paper_search/`（当前 **v0.4.0**）
 > **合并原因**：v0.1/v0.2 期间 fine + broad 双 skill 文档重叠 ~60%（反幻觉 / 法规 / key 管理 / API 限流等章节逐份复制），

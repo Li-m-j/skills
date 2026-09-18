@@ -1,4 +1,4 @@
-# Set-ApiKey.ps1
+﻿# Set-ApiKey.ps1
 # 作用: 设置/更新/删除 API key
 # 用法:
 #   .\Set-ApiKey.ps1 -Provider openalex -Key "YOUR_OPENALEX_KEY_HERE"   # 注意：不要把真实 key 写进本文件的注释/提交到 git

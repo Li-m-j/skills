@@ -16,7 +16,7 @@ import os
 import re
 import subprocess
 import sys
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 # ---------------------------------------------------------------------------
 # 可选依赖探测（不强制安装，缺失时自动降级）
@@ -42,17 +42,20 @@ def _subprocess_flags() -> int:
 
 
 def _pdftotext_available() -> bool:
-    """探测 poppler 的 pdftotext 命令是否存在。"""
+    """探测 poppler 的 pdftotext 命令是否存在。
+
+    注意：`pdftotext -v` 在 poppler/xpdf 各版本中普遍返回非 0（如 99），
+    因此只要命令能启动（未抛 FileNotFoundError/OSError）即视为可用。
+    """
     try:
-        proc = subprocess.run(
+        subprocess.run(
             ["pdftotext", "-v"],
             capture_output=True,
-            text=True,
             timeout=10,
             check=False,
             creationflags=_subprocess_flags(),
         )
-        return proc.returncode == 0
+        return True
     except (FileNotFoundError, OSError, subprocess.TimeoutExpired):
         return False
 
@@ -95,11 +98,26 @@ def get_page_count(pdf_path: str) -> int:
 # ---------------------------------------------------------------------------
 # 多后端统一提取入口（v0.3.0 新增）
 # ---------------------------------------------------------------------------
+# 独立成行的章节标题（与 sections.py 的行锚定正则同源思路，用于后端质量比较）
+_HEADING_LINE_RE = re.compile(
+    r"(?im)^\s*(\d+(\.\d+)*\.?\s*)?"
+    r"(abstract|summary|introduction|methods?|methodology|computational\s+\w+|"
+    r"results?(?:\s+and\s+discussion)?|discussion|conclusions?|outlook|"
+    r"摘\s*要|引言|绪论|前言|方法|计算.{0,4}法?|结果|讨论|结论|展望)\s*$"
+)
+
+
+def _heading_hits(text: str) -> int:
+    return len(_HEADING_LINE_RE.findall(text))
+
+
 def extract_with_fallback(pdf_path: str) -> Tuple[str, int, str]:
     """按优先级尝试所有可用后端，返回 (text, page_count, extractor_used)。
 
-    优先级：pdftotext（poppler，CLI）→ PyMuPDF(fitz) → pdfplumber
-    第一个非空结果胜出；全部失败返回 ("", 0, "none")。
+    优先级：pdftotext（poppler，CLI）→ PyMuPDF(fitz) → pdfplumber。
+    pdftotext raw 模式会把章节标题并入同行段落，若其结果中没有任何
+    独立成行的章节标题，则继续尝试后续后端并优先采用有标题行的结果。
+    全部失败返回 ("", 0, "none")。
 
     这是 v0.3.0 拆分后由 `pdf_extractor.extract_pdf()` 调用的统一入口。
     """
@@ -115,11 +133,17 @@ def extract_with_fallback(pdf_path: str) -> Tuple[str, int, str]:
     if HAS_PDFPLUMBER:
         attempts.append(("pdfplumber", extract_with_pdfplumber))
 
+    first_ok: Optional[Tuple[str, int, str]] = None
     for name, func in attempts:
         text, pages = func(pdf_path)  # type: ignore
-        if text and text.strip():
-            return text, pages, name
-    return "", 0, "none"
+        if not (text and text.strip()):
+            continue
+        hits = _heading_hits(text)
+        if hits > 0 or first_ok is None:
+            if hits > 0:
+                return text, pages, name
+            first_ok = (text, pages, name)
+    return first_ok if first_ok is not None else ("", 0, "none")
 
 
 __all__ = [
